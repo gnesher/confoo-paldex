@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+/* Custom component styles */
+@layer components {
+  .pal-card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 hover:shadow-lg;
+  }
+  
+  .type-badge {
+    @apply px-2 py-0.5 rounded-full text-xs font-medium text-white;
+  }
+  
+  .filter-section {
+    @apply bg-white rounded-lg shadow p-4;
+  }
+
+  /* Pal type colors are defined in tailwind.config.js as custom theme colors.
+     Classes like bg-neutral, bg-fire, etc. are generated automatically by Tailwind. */
+}
