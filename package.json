@@ -8,9 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "test:components": "vitest --exclude '**/tests/browser/**'",
+    "test:pages": "vitest tests/browser",
     "test:ui": "vitest --ui",
-    "test:e2e:home": "npx playwright test tests/e2e/home.spec.ts",
-    "test:e2e:detail": "npx playwright test tests/e2e/detail.spec.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -15,10 +15,15 @@ import { FilterSidebar } from '~/components/FilterSidebar'
  */
 const searchParamsSchema = z.object({
   q: z.string().optional(),
-  types: z
-    .string()
-    .optional()
-    .transform((val) => (val ? val.split(',').filter(Boolean) : undefined)),
+  // Accept both string (from URL) and string[] (from router state) so
+  // memory-history re-validation doesn't break.
+  types: z.preprocess(
+    (val) => (Array.isArray(val) ? val.join(',') : val),
+    z
+      .string()
+      .optional()
+      .transform((val) => (val ? val.split(',').filter(Boolean) : undefined)),
+  ),
   atkMin: z.coerce.number().min(0).max(200).optional().catch(undefined),
   atkMax: z.coerce.number().min(0).max(200).optional().catch(undefined),
 })
