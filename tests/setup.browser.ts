@@ -5,7 +5,7 @@ import { afterEach, beforeEach } from 'vitest'
 
 // Delay (in ms) between each test so you can see the rendered components.
 // Set to 0 to run at full speed.
-const SLOW_DOWN_MS = 0
+const SLOW_DOWN_MS = 100
 
 beforeEach(() => {
   localStorage.clear()
