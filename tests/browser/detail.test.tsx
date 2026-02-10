@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
 import { renderApp, MOCK_PALS, filterPals, DATA_TIMEOUT } from './helpers'
 
 // ---- mock the data layer (no real API / no artificial delay) ----
@@ -22,182 +21,155 @@ beforeEach(() => {
 
 describe('Detail Page', () => {
   it('should display the Pal name and ID', async () => {
-    await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Lamball')
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByRole('heading', { level: 1 }),
+      DATA_TIMEOUT
+    ).toHaveTextContent('Lamball')
 
-    expect(screen.getByText('#001')).toBeInTheDocument()
+    await expect.element(screen.getByText('#001')).toBeInTheDocument()
   })
 
   it('should display the Pal image', async () => {
-    await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByAltText('Lamball')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByAltText('Lamball'), DATA_TIMEOUT).toBeInTheDocument()
   })
 
   it('should display type badges', async () => {
-    await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      // Lamball is Neutral type
-      expect(screen.getByText('Neutral')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    // Lamball is Neutral type
+    await expect.element(screen.getByText('Neutral'), DATA_TIMEOUT).toBeInTheDocument()
   })
 
   it('should display dual type badges', async () => {
     // Pengullet (010) is Water + Ice
-    await renderApp('/pals/010')
+    const { screen } = await renderApp('/pals/010')
 
-    await waitFor(() => {
-      expect(screen.getByText('Water')).toBeInTheDocument()
-      expect(screen.getByText('Ice')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Water', { exact: true }), DATA_TIMEOUT).toBeInTheDocument()
+    await expect.element(screen.getByText('Ice', { exact: true })).toBeInTheDocument()
   })
 
   it('should display HP, Attack, and Defense stats', async () => {
-    await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('HP')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
-
-    expect(screen.getByText('Attack')).toBeInTheDocument()
-    expect(screen.getByText('Defense')).toBeInTheDocument()
+    await expect.element(screen.getByText('HP'), DATA_TIMEOUT).toBeInTheDocument()
+    await expect.element(screen.getByText('Attack')).toBeInTheDocument()
+    await expect.element(screen.getByText('Defense')).toBeInTheDocument()
   })
 
   it('should display the Work Suitability table', async () => {
-    await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Work Suitability')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Work Suitability'), DATA_TIMEOUT).toBeInTheDocument()
 
     // Lamball has Handiwork, Transporting, Farming
-    expect(screen.getByText('Handiwork')).toBeInTheDocument()
-    expect(screen.getByText('Transporting')).toBeInTheDocument()
-    expect(screen.getByText('Farming')).toBeInTheDocument()
+    await expect.element(screen.getByText('Handiwork')).toBeInTheDocument()
+    await expect.element(screen.getByText('Transporting')).toBeInTheDocument()
+    await expect.element(screen.getByText('Farming')).toBeInTheDocument()
   })
 
   it('should display the Drops table', async () => {
-    await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Drops')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
-
-    expect(screen.getByText('Wool')).toBeInTheDocument()
+    await expect.element(screen.getByText('Drops'), DATA_TIMEOUT).toBeInTheDocument()
+    await expect.element(screen.getByText('Wool')).toBeInTheDocument()
   })
 
   it('should display the "Add to Team" button', async () => {
-    await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Add to Team')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Add to Team'), DATA_TIMEOUT).toBeInTheDocument()
   })
 
   it('should add a Pal to the team', async () => {
-    const { user } = await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Add to Team')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Add to Team'), DATA_TIMEOUT).toBeInTheDocument()
 
-    await user.click(screen.getByText('Add to Team'))
+    await screen.getByText('Add to Team').click()
 
-    expect(screen.getByText('Remove from Team')).toBeInTheDocument()
-    expect(screen.getByText('1 Pal')).toBeInTheDocument()
-    expect(screen.getByText('My Team')).toBeInTheDocument()
+    await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
+    await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
+    await expect.element(screen.getByText('My Team')).toBeInTheDocument()
   })
 
   it('should remove a Pal from the team', async () => {
-    const { user } = await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Add to Team')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Add to Team'), DATA_TIMEOUT).toBeInTheDocument()
 
-    await user.click(screen.getByText('Add to Team'))
-    expect(screen.getByText('Remove from Team')).toBeInTheDocument()
+    await screen.getByText('Add to Team').click()
+    await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
 
-    await user.click(screen.getByText('Remove from Team'))
-    expect(screen.getByText('Add to Team')).toBeInTheDocument()
+    await screen.getByText('Remove from Team').click()
+    await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
   })
 
   it('should expand the team bar to show Pal thumbnails', async () => {
-    const { user } = await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Add to Team')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Add to Team'), DATA_TIMEOUT).toBeInTheDocument()
 
-    await user.click(screen.getByText('Add to Team'))
-    await user.click(screen.getByText('My Team'))
+    await screen.getByText('Add to Team').click()
+    await screen.getByText('My Team').click()
 
     // Expanded bar shows the per-member remove button
-    await waitFor(() => {
-      expect(screen.getByTitle('Remove from team')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByTitle('Remove from team')).toBeInTheDocument()
   })
 
   it('should persist team across page navigation', async () => {
-    const { user } = await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Add to Team')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Add to Team'), DATA_TIMEOUT).toBeInTheDocument()
 
-    await user.click(screen.getByText('Add to Team'))
-    expect(screen.getByText('1 Pal')).toBeInTheDocument()
+    await screen.getByText('Add to Team').click()
+    await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
 
     // Navigate back to home
-    await user.click(screen.getByText('Back to Paldex'))
+    await screen.getByText('Back to Paldex').click()
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Paldex')
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByRole('heading', { level: 1 }),
+      DATA_TIMEOUT
+    ).toHaveTextContent('Paldex')
 
     // Team bar should still show
-    expect(screen.getByText('1 Pal')).toBeInTheDocument()
+    await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
   })
 
   it('should have a working "Back to Paldex" link', async () => {
-    const { user } = await renderApp('/pals/001')
+    const { screen } = await renderApp('/pals/001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Back to Paldex')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Back to Paldex'), DATA_TIMEOUT).toBeInTheDocument()
 
-    await user.click(screen.getByText('Back to Paldex'))
+    await screen.getByText('Back to Paldex').click()
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Paldex')
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByRole('heading', { level: 1 }),
+      DATA_TIMEOUT
+    ).toHaveTextContent('Paldex')
   })
 
   it('should show "Pal Not Found" for invalid ID', async () => {
-    await renderApp('/pals/999')
+    const { screen } = await renderApp('/pals/999')
 
-    await waitFor(() => {
-      expect(screen.getByText('Pal Not Found')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
-
-    expect(screen.getByText(/No Pal with ID "999" exists/)).toBeInTheDocument()
+    await expect.element(screen.getByText('Pal Not Found'), DATA_TIMEOUT).toBeInTheDocument()
+    await expect.element(screen.getByText(/No Pal with ID "999" exists/)).toBeInTheDocument()
   })
 
   it('should display different Pals correctly', async () => {
     // Foxparks is Fire type with Kindling suitability
-    await renderApp('/pals/005')
+    const { screen } = await renderApp('/pals/005')
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Foxparks')
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByRole('heading', { level: 1 }),
+      DATA_TIMEOUT
+    ).toHaveTextContent('Foxparks')
 
-    expect(screen.getByText('Fire')).toBeInTheDocument()
-    expect(screen.getByText('Kindling')).toBeInTheDocument()
+    await expect.element(screen.getByText('Fire')).toBeInTheDocument()
+    await expect.element(screen.getByText('Kindling')).toBeInTheDocument()
   })
 })

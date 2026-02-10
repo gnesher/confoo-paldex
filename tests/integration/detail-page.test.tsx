@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import React, { Suspense, useEffect } from 'react'
+import { render } from 'vitest-browser-react'
+import { Suspense } from 'react'
 import { QueryClient, QueryClientProvider, useSuspenseQuery } from '@tanstack/react-query'
 import {
   createMemoryHistory,
@@ -18,7 +17,6 @@ import { SuitabilityTable } from '~/components/SuitabilityTable'
 import { DropsTable } from '~/components/DropsTable'
 import { TeamButton } from '~/components/TeamButton'
 import { PalNotFoundState } from '~/components/EmptyState'
-import type { Pal, PalType } from '~/schemas/pal'
 import { PAL_TYPE_COLORS } from '~/schemas/pal'
 
 // Mock the pals data utility
@@ -106,7 +104,7 @@ function DetailContent({ palId }: { palId: string }) {
   )
 }
 
-function renderDetailPage(palId: string) {
+async function renderDetailPage(palId: string) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false, staleTime: 0, gcTime: Infinity },
@@ -145,18 +143,13 @@ function renderDetailPage(palId: string) {
     history: createMemoryHistory({ initialEntries: ['/detail'] }),
   })
 
-  const user = userEvent.setup()
+  const screen = await render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  )
 
-  let result!: ReturnType<typeof render>
-  act(() => {
-    result = render(
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    )
-  })
-
-  return { ...result!, user, queryClient }
+  return { screen, queryClient }
 }
 
 describe('Detail Page Integration', () => {
@@ -167,100 +160,78 @@ describe('Detail Page Integration', () => {
 
   it('should render the Pal name and stats after loading', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Lamball')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('HP')).toBeInTheDocument()
-    expect(screen.getByText('Attack')).toBeInTheDocument()
-    expect(screen.getByText('Defense')).toBeInTheDocument()
+    await expect.element(screen.getByText('Lamball')).toBeInTheDocument()
+    await expect.element(screen.getByText('HP')).toBeInTheDocument()
+    await expect.element(screen.getByText('Attack')).toBeInTheDocument()
+    await expect.element(screen.getByText('Defense')).toBeInTheDocument()
   })
 
   it('should render the Pal image', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByAltText('Lamball')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByAltText('Lamball')).toBeInTheDocument()
   })
 
   it('should render type badges', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Neutral')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('Neutral')).toBeInTheDocument()
   })
 
   it('should render the SuitabilityTable section', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Work Suitability')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('Handiwork')).toBeInTheDocument()
-    expect(screen.getByText('Transporting')).toBeInTheDocument()
-    expect(screen.getByText('Farming')).toBeInTheDocument()
+    await expect.element(screen.getByText('Work Suitability')).toBeInTheDocument()
+    await expect.element(screen.getByText('Handiwork')).toBeInTheDocument()
+    await expect.element(screen.getByText('Transporting')).toBeInTheDocument()
+    await expect.element(screen.getByText('Farming')).toBeInTheDocument()
   })
 
   it('should render the DropsTable section', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Drops')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('Wool')).toBeInTheDocument()
+    await expect.element(screen.getByText('Drops')).toBeInTheDocument()
+    await expect.element(screen.getByText('Wool')).toBeInTheDocument()
   })
 
   it('should render the TeamButton', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Add to Team')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
   })
 
   it('should toggle team membership via TeamButton', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    const { user } = renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Add to Team')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
 
-    await user.click(screen.getByText('Add to Team'))
-    expect(screen.getByText('Remove from Team')).toBeInTheDocument()
+    await screen.getByText('Add to Team').click()
+    await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
 
-    await user.click(screen.getByText('Remove from Team'))
-    expect(screen.getByText('Add to Team')).toBeInTheDocument()
+    await screen.getByText('Remove from Team').click()
+    await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
   })
 
   it('should render "Back to Paldex" link', async () => {
     mockGetPalById.mockResolvedValue(MOCK_LAMBALL)
-    renderDetailPage('001')
+    const { screen } = await renderDetailPage('001')
 
-    await waitFor(() => {
-      expect(screen.getByText('Back to Paldex')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('Back to Paldex')).toBeInTheDocument()
   })
 
   it('should show PalNotFound when Pal does not exist', async () => {
     mockGetPalById.mockResolvedValue(null)
-    renderDetailPage('999')
+    const { screen } = await renderDetailPage('999')
 
-    await waitFor(() => {
-      expect(screen.getByText('Pal Not Found')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText(/No Pal with ID "999" exists/)).toBeInTheDocument()
+    await expect.element(screen.getByText('Pal Not Found')).toBeInTheDocument()
+    await expect.element(screen.getByText(/No Pal with ID "999" exists/)).toBeInTheDocument()
   })
 })

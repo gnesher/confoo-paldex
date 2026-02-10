@@ -1,6 +1,5 @@
-import React, { Suspense } from 'react'
-import { render, act, waitFor, type RenderOptions } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { Suspense } from 'react'
+import { render } from 'vitest-browser-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createRootRoute,
@@ -29,7 +28,7 @@ function createTestQueryClient() {
   })
 }
 
-interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
+interface RenderWithProvidersOptions {
   /** Initial URL path for the router, defaults to '/' */
   initialPath?: string
   /** Provide a pre-configured QueryClient (otherwise a fresh one is created) */
@@ -42,14 +41,13 @@ interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
  * 2. TanStack Router (memory history, catch-all route)
  * 3. Suspense boundary
  *
- * Uses `act()` to wait for the router to finish initializing before returning.
- * Returns all @testing-library queries plus a `user` for userEvent interactions.
+ * Returns vitest-browser-react screen (with locator methods) plus queryClient/router.
  */
 export async function renderWithProviders(
   ui: React.ReactElement,
   options: RenderWithProvidersOptions = {},
 ) {
-  const { initialPath = '/', queryClient, ...renderOptions } = options
+  const { initialPath = '/', queryClient } = options
   const testQueryClient = queryClient ?? createTestQueryClient()
 
   // Build a minimal route tree that renders our test UI
@@ -81,55 +79,40 @@ export async function renderWithProviders(
     history: createMemoryHistory({ initialEntries: [initialPath] }),
   })
 
-  const user = userEvent.setup()
+  const screen = await render(
+    <QueryClientProvider client={testQueryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
 
-  let result!: ReturnType<typeof render>
-  await act(async () => {
-    result = render(
-      <QueryClientProvider client={testQueryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>,
-      renderOptions,
-    )
-  })
-
-  return { ...result, user, queryClient: testQueryClient, router }
+  return { screen, queryClient: testQueryClient, router }
 }
 
 /**
  * Simpler render that only wraps in QueryClientProvider (no router).
  * Useful for components that don't use Link/navigation.
  */
-export function renderWithQuery(
+export async function renderWithQuery(
   ui: React.ReactElement,
   options: Omit<RenderWithProvidersOptions, 'initialPath'> = {},
 ) {
-  const { queryClient, ...renderOptions } = options
+  const { queryClient } = options
   const testQueryClient = queryClient ?? createTestQueryClient()
 
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <QueryClientProvider client={testQueryClient}>
-        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-      </QueryClientProvider>
-    )
-  }
+  const screen = await render(
+    <QueryClientProvider client={testQueryClient}>
+      <Suspense fallback={<div>Loading...</div>}>{ui}</Suspense>
+    </QueryClientProvider>,
+  )
 
-  const result = render(ui, { wrapper: Wrapper, ...renderOptions })
-  const user = userEvent.setup()
-
-  return { ...result, user, queryClient: testQueryClient }
+  return { screen, queryClient: testQueryClient }
 }
 
 /**
  * Minimal render with just Suspense (no router, no query client).
  * Useful for pure presentational components.
  */
-export function renderSimple(
-  ui: React.ReactElement,
-  options: Omit<RenderOptions, 'wrapper'> = {},
-) {
-  const result = render(ui, options)
-  const user = userEvent.setup()
-  return { ...result, user }
+export async function renderSimple(ui: React.ReactElement) {
+  const screen = await render(ui)
+  return { screen }
 }

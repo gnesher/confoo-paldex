@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import React, { Suspense } from 'react'
+import { render } from 'vitest-browser-react'
+import { Suspense } from 'react'
 import { QueryClient, QueryClientProvider, useSuspenseQuery } from '@tanstack/react-query'
 import {
   createMemoryHistory,
@@ -62,7 +61,7 @@ function PalGridWithData() {
   )
 }
 
-function renderHomePage() {
+async function renderHomePage() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false, staleTime: 0, gcTime: Infinity },
@@ -95,18 +94,13 @@ function renderHomePage() {
     history: createMemoryHistory({ initialEntries: ['/'] }),
   })
 
-  const user = userEvent.setup()
+  const screen = await render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  )
 
-  let result!: ReturnType<typeof render>
-  act(() => {
-    result = render(
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    )
-  })
-
-  return { ...result!, user, queryClient }
+  return { screen, queryClient }
 }
 
 describe('Home Page Integration', () => {
@@ -119,54 +113,43 @@ describe('Home Page Integration', () => {
     const pals = createMockPals(5)
     mockGetPals.mockResolvedValue(pals)
 
-    renderHomePage()
+    const { screen } = await renderHomePage()
 
-    await waitFor(() => {
-      expect(screen.getByText('Paldex')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText(/A Pokedex for Palworld/)).toBeInTheDocument()
+    await expect.element(screen.getByText('Paldex')).toBeInTheDocument()
+    await expect.element(screen.getByText(/A Pokedex for Palworld/)).toBeInTheDocument()
   })
 
   it('should display Pal count after data loads', async () => {
     const pals = createMockPals(5)
     mockGetPals.mockResolvedValue(pals)
 
-    renderHomePage()
+    const { screen } = await renderHomePage()
 
-    await waitFor(() => {
-      expect(screen.getByText('5 Pals found')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('5 Pals found')).toBeInTheDocument()
   })
 
   it('should show loading state before data loads', async () => {
     // Never resolve
     mockGetPals.mockReturnValue(new Promise(() => {}))
 
-    renderHomePage()
+    const { screen } = await renderHomePage()
 
-    await waitFor(() => {
-      expect(screen.getByText('Loading skeleton...')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('Loading skeleton...')).toBeInTheDocument()
   })
 
   it('should show empty state when no Pals match filters', async () => {
     mockGetPals.mockResolvedValue([])
 
-    renderHomePage()
+    const { screen } = await renderHomePage()
 
-    await waitFor(() => {
-      expect(screen.getByText('0 Pals found')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('0 Pals found')).toBeInTheDocument()
   })
 
   it('should render the filter sidebar', async () => {
     mockGetPals.mockResolvedValue(createMockPals(3))
 
-    renderHomePage()
+    const { screen } = await renderHomePage()
 
-    await waitFor(() => {
-      expect(screen.getByText('Filters')).toBeInTheDocument()
-    })
+    await expect.element(screen.getByText('Filters')).toBeInTheDocument()
   })
 })

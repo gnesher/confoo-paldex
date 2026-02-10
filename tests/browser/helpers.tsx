@@ -1,5 +1,4 @@
-import { render, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render } from 'vitest-browser-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createRouter,
@@ -34,7 +33,7 @@ export const MOCK_PALS: Pal[] = [
   MOCK_PENGULLET, // 010, Water + Ice
 ]
 
-/** Standard timeout for waitFor — generous enough even on slow CI. */
+/** Standard timeout for expect.element — generous enough even on slow CI. */
 export const DATA_TIMEOUT = { timeout: 2000 }
 
 /**
@@ -60,18 +59,13 @@ export async function renderApp(initialPath = '/') {
     defaultPreload: false,
   })
 
-  const user = userEvent.setup()
+  const screen = await render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
 
-  let result!: ReturnType<typeof render>
-  await act(async () => {
-    result = render(
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>,
-    )
-  })
-
-  return { ...result, user, router, queryClient }
+  return { screen, router, queryClient }
 }
 
 /**

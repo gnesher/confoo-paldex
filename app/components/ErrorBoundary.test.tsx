@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen } from '@testing-library/react'
 import { ErrorBoundary, ErrorFallback } from './ErrorBoundary'
 import { renderWithProviders } from '../../tests/helpers/render'
 
 // Component that throws an error on render
-function ThrowingComponent({ message }: { message: string }) {
+function ThrowingComponent({ message }: { message: string }): never {
   throw new Error(message)
 }
 
@@ -24,89 +23,89 @@ describe('ErrorBoundary', () => {
   })
 
   it('should render children when no error occurs', async () => {
-    await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorBoundary>
         <GoodComponent />
       </ErrorBoundary>
     )
-    expect(screen.getByText('Everything is fine')).toBeInTheDocument()
+    await expect.element(screen.getByText('Everything is fine')).toBeInTheDocument()
   })
 
   it('should catch errors and show fallback UI', async () => {
-    await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorBoundary>
         <ThrowingComponent message="Test error message" />
       </ErrorBoundary>
     )
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
-    expect(screen.getByText('Test error message')).toBeInTheDocument()
+    await expect.element(screen.getByText('Something went wrong')).toBeInTheDocument()
+    await expect.element(screen.getByText('Test error message')).toBeInTheDocument()
   })
 
   it('should show "Try again" and "Go to Home" buttons on error', async () => {
-    await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorBoundary>
         <ThrowingComponent message="Oops" />
       </ErrorBoundary>
     )
-    expect(
+    await expect.element(
       screen.getByRole('button', { name: /try again/i })
     ).toBeInTheDocument()
-    expect(
+    await expect.element(
       screen.getByRole('link', { name: /go to home/i })
     ).toBeInTheDocument()
   })
 
   it('should use custom fallback when provided', async () => {
-    await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorBoundary fallback={<div>Custom fallback UI</div>}>
         <ThrowingComponent message="Oops" />
       </ErrorBoundary>
     )
-    expect(screen.getByText('Custom fallback UI')).toBeInTheDocument()
-    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument()
+    await expect.element(screen.getByText('Custom fallback UI')).toBeInTheDocument()
+    await expect.element(screen.getByText('Something went wrong')).not.toBeInTheDocument()
   })
 })
 
 describe('ErrorFallback', () => {
   it('should render the error message', async () => {
-    await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorFallback error={new Error('Something broke')} />
     )
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
-    expect(screen.getByText('Something broke')).toBeInTheDocument()
+    await expect.element(screen.getByText('Something went wrong')).toBeInTheDocument()
+    await expect.element(screen.getByText('Something broke')).toBeInTheDocument()
   })
 
   it('should render "Try again" button when resetErrorBoundary is provided', async () => {
     const reset = vi.fn()
-    await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorFallback
         error={new Error('Fail')}
         resetErrorBoundary={reset}
       />
     )
-    expect(
+    await expect.element(
       screen.getByRole('button', { name: /try again/i })
     ).toBeInTheDocument()
   })
 
   it('should not render "Try again" button when no resetErrorBoundary', async () => {
-    await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorFallback error={new Error('Fail')} />
     )
-    expect(
-      screen.queryByRole('button', { name: /try again/i })
+    await expect.element(
+      screen.getByRole('button', { name: /try again/i })
     ).not.toBeInTheDocument()
   })
 
   it('should call resetErrorBoundary when "Try again" is clicked', async () => {
     const reset = vi.fn()
-    const { user } = await renderWithProviders(
+    const { screen } = await renderWithProviders(
       <ErrorFallback
         error={new Error('Fail')}
         resetErrorBoundary={reset}
       />
     )
-    await user.click(screen.getByRole('button', { name: /try again/i }))
+    await screen.getByRole('button', { name: /try again/i }).click()
     expect(reset).toHaveBeenCalledOnce()
   })
 })

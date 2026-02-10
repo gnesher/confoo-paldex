@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import React, { Suspense } from 'react'
+import { render } from 'vitest-browser-react'
+import { Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createMemoryHistory,
@@ -21,7 +20,7 @@ describe('Team Management Flow', () => {
     clearTeam()
   })
 
-  function renderTeamFlow() {
+  async function renderTeamFlow() {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false, staleTime: 0, gcTime: Infinity },
@@ -63,111 +62,93 @@ describe('Team Management Flow', () => {
       history: createMemoryHistory({ initialEntries: ['/'] }),
     })
 
-    const user = userEvent.setup()
+    const screen = await render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    )
 
-    let result!: ReturnType<typeof render>
-    act(() => {
-      result = render(
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
-      )
-    })
-
-    return { ...result!, user }
+    return { screen }
   }
 
   it('should add a Pal and see it appear in the bottom bar', async () => {
-    const { user } = renderTeamFlow()
+    const { screen } = await renderTeamFlow()
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Add to Team').length).toBe(2)
-    })
+    await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
     // Initially no bottom bar
-    expect(screen.queryByText('My Team')).not.toBeInTheDocument()
+    await expect.element(screen.getByText('My Team')).not.toBeInTheDocument()
 
     // Add Lamball to team
-    const addButtons = screen.getAllByText('Add to Team')
-    await user.click(addButtons[0])
+    await screen.getByText('Add to Team').first().click()
 
     // Bottom bar should appear with count
-    expect(screen.getByText('My Team')).toBeInTheDocument()
-    expect(screen.getByText('1 Pal')).toBeInTheDocument()
+    await expect.element(screen.getByText('My Team')).toBeInTheDocument()
+    await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
   })
 
   it('should expand the bar and show team members', async () => {
-    const { user } = renderTeamFlow()
+    const { screen } = await renderTeamFlow()
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Add to Team').length).toBe(2)
-    })
+    await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
     // Add Lamball
-    const addButtons = screen.getAllByText('Add to Team')
-    await user.click(addButtons[0])
+    await screen.getByText('Add to Team').first().click()
 
     // Expand
-    await user.click(screen.getByText('My Team'))
+    await screen.getByText('My Team').click()
 
     // Should see Lamball in the expanded bar
-    expect(screen.getByText('Lamball')).toBeInTheDocument()
+    await expect.element(screen.getByText('Lamball')).toBeInTheDocument()
   })
 
   it('should update count when adding multiple Pals', async () => {
-    const { user } = renderTeamFlow()
+    const { screen } = await renderTeamFlow()
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Add to Team').length).toBe(2)
-    })
+    await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
     // Add Lamball
-    await user.click(screen.getAllByText('Add to Team')[0])
+    await screen.getByText('Add to Team').first().click()
     // Add Foxparks (it's the remaining "Add to Team" button)
-    await user.click(screen.getAllByText('Add to Team')[0])
+    await screen.getByText('Add to Team').first().click()
 
-    expect(screen.getByText('2 Pals')).toBeInTheDocument()
+    await expect.element(screen.getByText('2 Pals')).toBeInTheDocument()
   })
 
   it('should remove a Pal from the team via the bottom bar', async () => {
-    const { user } = renderTeamFlow()
+    const { screen } = await renderTeamFlow()
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Add to Team').length).toBe(2)
-    })
+    await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
     // Add Lamball
-    await user.click(screen.getAllByText('Add to Team')[0])
+    await screen.getByText('Add to Team').first().click()
 
     // Expand
-    await user.click(screen.getByText('My Team'))
+    await screen.getByText('My Team').click()
 
     // Remove via the remove button in the bar
-    const removeButton = screen.getByTitle('Remove from team')
-    await user.click(removeButton)
+    await screen.getByTitle('Remove from team').click()
 
     // Team should be empty
     expect(teamStore.state.pals).toHaveLength(0)
   })
 
   it('should toggle button text between Add and Remove', async () => {
-    const { user } = renderTeamFlow()
+    const { screen } = await renderTeamFlow()
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Add to Team').length).toBe(2)
-    })
+    await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
     // Add Lamball
-    await user.click(screen.getAllByText('Add to Team')[0])
+    await screen.getByText('Add to Team').first().click()
 
     // Button should now say "Remove from Team"
-    expect(screen.getByText('Remove from Team')).toBeInTheDocument()
+    await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
 
     // Click to remove
-    await user.click(screen.getByText('Remove from Team'))
+    await screen.getByText('Remove from Team').click()
 
     // Should be back to "Add to Team" (both buttons)
-    const addButtons = screen.getAllByText('Add to Team')
+    const addButtons = await screen.getByText('Add to Team').all()
     expect(addButtons).toHaveLength(2)
   })
 })

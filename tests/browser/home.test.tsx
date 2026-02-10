@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
 import { renderApp, MOCK_PALS, filterPals, DATA_TIMEOUT } from './helpers'
 
 // ---- mock the data layer (no real API / no artificial delay) ----
@@ -22,154 +21,152 @@ beforeEach(() => {
 
 describe('Home Page', () => {
   it('should display the page heading and description', async () => {
-    await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Paldex')
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByRole('heading', { level: 1 }),
+      DATA_TIMEOUT
+    ).toHaveTextContent('Paldex')
 
-    expect(screen.getByText(/A Pokedex for Palworld/)).toBeInTheDocument()
+    await expect.element(screen.getByText(/A Pokedex for Palworld/)).toBeInTheDocument()
   })
 
   it('should load and display all Pals', async () => {
-    await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
   })
 
   it('should display the filter sidebar', async () => {
-    await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText('Filters')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Filters'), DATA_TIMEOUT).toBeInTheDocument()
 
-    expect(screen.getByPlaceholderText('Search Pals by name...')).toBeInTheDocument()
-    expect(screen.getByText('Types')).toBeInTheDocument()
-    expect(screen.getByText('Attack Range')).toBeInTheDocument()
+    await expect.element(screen.getByPlaceholder('Search Pals by name...')).toBeInTheDocument()
+    await expect.element(screen.getByText('Types', { exact: true })).toBeInTheDocument()
+    await expect.element(screen.getByText('Attack Range')).toBeInTheDocument()
   })
 
   it('should render Pal cards with images', async () => {
-    await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
 
-    const img = screen.getByAltText('Lamball')
-    expect(img).toBeInTheDocument()
+    await expect.element(screen.getByAltText('Lamball')).toBeInTheDocument()
   })
 
   it('should display Pal name and ID on cards', async () => {
-    await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText('Lamball')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
-
-    expect(screen.getByText('#001')).toBeInTheDocument()
+    await expect.element(screen.getByText('Lamball'), DATA_TIMEOUT).toBeInTheDocument()
+    await expect.element(screen.getByText('#001')).toBeInTheDocument()
   })
 
   it('should filter Pals by search text', async () => {
-    const { user } = await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
 
-    const searchInput = screen.getByPlaceholderText('Search Pals by name...')
-    await user.clear(searchInput)
-    await user.type(searchInput, 'fox')
+    const searchInput = screen.getByPlaceholder('Search Pals by name...')
+    await searchInput.clear()
+    await searchInput.fill('fox')
 
     // Debounce fires, navigation updates params, query re-runs with filter
-    await waitFor(() => {
-      expect(screen.getByText('Foxparks')).toBeInTheDocument()
-      expect(screen.getByText('1 Pals found')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Foxparks'), DATA_TIMEOUT).toBeInTheDocument()
+    await expect.element(screen.getByText('1 Pals found')).toBeInTheDocument()
   })
 
   it('should clear search and show all Pals again', async () => {
-    const { user } = await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
 
-    const searchInput = screen.getByPlaceholderText('Search Pals by name...')
-    await user.type(searchInput, 'fox')
+    const searchInput = screen.getByPlaceholder('Search Pals by name...')
+    await searchInput.fill('fox')
 
-    await waitFor(() => {
-      expect(screen.getByText('1 Pals found')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('1 Pals found'), DATA_TIMEOUT).toBeInTheDocument()
 
-    await user.clear(searchInput)
+    await searchInput.clear()
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
   })
 
   it('should filter Pals by type', async () => {
-    const { user } = await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
 
     // Open type dropdown and select Fire
-    await user.click(screen.getByText('Select types...'))
-    await user.click(screen.getByRole('checkbox', { name: /Fire/ }))
+    await screen.getByText('Select types...').click()
+    await screen.getByRole('checkbox', { name: /Fire/ }).click()
 
     // Foxparks + Rooby = 2 Fire pals
-    await waitFor(() => {
-      expect(screen.getByText('2 Pals found')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('2 Pals found'), DATA_TIMEOUT).toBeInTheDocument()
   })
 
   it('should navigate to Pal detail page when clicking a card', async () => {
-    const { user } = await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText('Lamball')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(screen.getByText('Lamball'), DATA_TIMEOUT).toBeInTheDocument()
 
-    await user.click(screen.getByText('Lamball'))
+    await screen.getByText('Lamball').click()
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Lamball')
-      expect(screen.getByText('Work Suitability')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByRole('heading', { level: 1 }),
+      DATA_TIMEOUT
+    ).toHaveTextContent('Lamball')
+    await expect.element(screen.getByText('Work Suitability')).toBeInTheDocument()
   })
 
   it('should show "Clear all filters" when filters are active', async () => {
-    const { user } = await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
 
-    const searchInput = screen.getByPlaceholderText('Search Pals by name...')
-    await user.type(searchInput, 'test')
+    const searchInput = screen.getByPlaceholder('Search Pals by name...')
+    await searchInput.fill('test')
 
-    await waitFor(() => {
-      expect(screen.getByText('Clear all filters')).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText('Clear all filters'),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
   })
 
   it('should display active filter badges', async () => {
-    const { user } = await renderApp('/')
+    const { screen } = await renderApp('/')
 
-    await waitFor(() => {
-      expect(screen.getByText(`${MOCK_PALS.length} Pals found`)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(`${MOCK_PALS.length} Pals found`),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
 
-    const searchInput = screen.getByPlaceholderText('Search Pals by name...')
-    await user.type(searchInput, 'lam')
+    const searchInput = screen.getByPlaceholder('Search Pals by name...')
+    await searchInput.fill('lam')
 
-    await waitFor(() => {
-      expect(screen.getByText(/Search:.*"lam"/)).toBeInTheDocument()
-    }, DATA_TIMEOUT)
+    await expect.element(
+      screen.getByText(/Search:.*"lam"/),
+      DATA_TIMEOUT
+    ).toBeInTheDocument()
   })
 })
