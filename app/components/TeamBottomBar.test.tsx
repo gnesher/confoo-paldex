@@ -10,33 +10,33 @@ describe('TeamBottomBar', () => {
   })
 
   it('should not render when team is empty', async () => {
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
     // The component returns null when team is empty and not expanded
     expect(screen.container.querySelector('.fixed')).toBeNull()
   })
 
   it('should show "My Team" bar when team has members', async () => {
     addPal(MOCK_LAMBALL)
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
     await expect.element(screen.getByText('My Team')).toBeInTheDocument()
   })
 
   it('should display correct singular Pal count', async () => {
     addPal(MOCK_LAMBALL)
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
     await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
   })
 
   it('should display correct plural Pals count', async () => {
     addPal(MOCK_LAMBALL)
     addPal(MOCK_FOXPARKS)
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
     await expect.element(screen.getByText('2 Pals')).toBeInTheDocument()
   })
 
   it('should expand to show Pal thumbnails on click', async () => {
     addPal(MOCK_LAMBALL)
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
 
     // Click to expand
     await screen.getByText('My Team').click()
@@ -47,7 +47,7 @@ describe('TeamBottomBar', () => {
 
   it('should collapse on second click', async () => {
     addPal(MOCK_LAMBALL)
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
 
     // Expand
     await screen.getByText('My Team').click()
@@ -61,7 +61,7 @@ describe('TeamBottomBar', () => {
   it('should show empty message when expanded with no Pals', async () => {
     // Add a Pal so the bar appears, then expand, then remove the Pal
     addPal(MOCK_LAMBALL)
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
 
     // Expand
     await screen.getByText('My Team').click()
@@ -78,7 +78,7 @@ describe('TeamBottomBar', () => {
   it('should remove a Pal when the remove button is clicked', async () => {
     addPal(MOCK_LAMBALL)
     addPal(MOCK_FOXPARKS)
-    const { screen } = await renderWithProviders(<TeamBottomBar />)
+    const { screen } = await renderWithProviders(() => <TeamBottomBar />)
 
     // Expand
     await screen.getByText('My Team').click()

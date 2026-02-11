@@ -1,5 +1,5 @@
-import { createRouter as createTanStackRouter } from '@tanstack/react-router'
-import { QueryClient } from '@tanstack/react-query'
+import { createRouter as createTanStackRouter } from '@tanstack/solid-router'
+import { QueryClient } from '@tanstack/solid-query'
 import { routeTree } from './routeTree.gen'
 
 export function createRouter() {
@@ -23,7 +23,7 @@ export function createRouter() {
   return { router, queryClient }
 }
 
-declare module '@tanstack/react-router' {
+declare module '@tanstack/solid-router' {
   interface Register {
     router: ReturnType<typeof createRouter>['router']
   }

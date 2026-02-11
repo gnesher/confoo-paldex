@@ -1,10 +1,10 @@
-import { render } from 'vitest-browser-react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render } from 'vitest-browser-solid'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import {
   createRouter,
   createMemoryHistory,
   RouterProvider,
-} from '@tanstack/react-router'
+} from '@tanstack/solid-router'
 import { routeTree } from '~/routeTree.gen'
 import { clearTeam } from '~/stores/team'
 import type { Pal } from '~/schemas/pal'
@@ -59,11 +59,11 @@ export async function renderApp(initialPath = '/') {
     defaultPreload: false,
   })
 
-  const screen = await render(
+  const screen = render(() => (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-    </QueryClientProvider>,
-  )
+    </QueryClientProvider>
+  ))
 
   return { screen, router, queryClient }
 }

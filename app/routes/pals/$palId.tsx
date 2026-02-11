@@ -1,6 +1,6 @@
-import { createRoute, Link } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Suspense, useEffect } from 'react'
+import { createRoute, Link } from '@tanstack/solid-router'
+import { createQuery } from '@tanstack/solid-query'
+import { Suspense, Show, For, createEffect, onCleanup } from 'solid-js'
 import { Route as rootRoute } from '../__root'
 import { getPalById } from '~/utils/pals'
 import { SuitabilityTable } from '~/components/SuitabilityTable'
@@ -27,18 +27,18 @@ export const Route = createRoute({
 })
 
 function PalDetailPage() {
-  const { palId } = Route.useParams()
+  const params = Route.useParams()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div class="min-h-screen bg-gray-50">
       {/* Back navigation */}
-      <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+      <div class="bg-white shadow">
+        <div class="max-w-4xl mx-auto px-4 py-3">
           <Link
             to="/"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            class="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <span className="mr-2">←</span>
+            <span class="mr-2">←</span>
             <span>Back to Paldex</span>
           </Link>
         </div>
@@ -46,7 +46,7 @@ function PalDetailPage() {
 
       {/* Main content with Suspense */}
       <Suspense fallback={<LoadingSkeleton />}>
-        <PalDetailContent palId={palId} />
+        <PalDetailContent palId={params().palId} />
       </Suspense>
     </div>
   )
@@ -55,107 +55,109 @@ function PalDetailPage() {
 /**
  * Pal detail content with data fetching
  */
-function PalDetailContent({ palId }: { palId: string }) {
-  const { data: pal } = useSuspenseQuery(palQueryOptions(palId))
+function PalDetailContent(props: { palId: string }) {
+  const query = createQuery(() => palQueryOptions(props.palId))
 
   // Update document title
-  useEffect(() => {
+  createEffect(() => {
+    const pal = query.data
     if (pal) {
       document.title = `${pal.name} | Paldex`
     }
-    return () => {
+    onCleanup(() => {
       document.title = 'Paldex - TanStack Ecosystem Demo'
-    }
-  }, [pal])
-
-  // Handle not found
-  if (!pal) {
-    return <PalNotFoundState palId={palId} />
-  }
+    })
+  })
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Hero Section */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <div className="md:flex">
-          {/* Image */}
-          <div className="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
-            <PalImage
-              src={pal.imageUrl}
-              alt={pal.name}
-              palId={pal.id}
-              className="w-48 h-48 object-contain"
-              fallbackIconSize="lg"
-            />
+    <Show
+      when={query.data}
+      fallback={
+        <Show when={query.isSuccess}>
+          <PalNotFoundState palId={props.palId} />
+        </Show>
+      }
+    >
+      {(pal) => (
+        <div class="max-w-4xl mx-auto px-4 py-8">
+          {/* Hero Section */}
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="md:flex">
+              {/* Image */}
+              <div class="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
+                <PalImage
+                  src={pal().imageUrl}
+                  alt={pal().name}
+                  palId={pal().id}
+                  class="w-48 h-48 object-contain"
+                  fallbackIconSize="lg"
+                />
+              </div>
+
+              {/* Info */}
+              <div class="md:w-2/3 p-6">
+                <div class="flex items-baseline gap-3 mb-4">
+                  <span class="text-gray-400 font-mono">#{pal().id}</span>
+                  <h1 class="text-3xl font-bold text-gray-900">{pal().name}</h1>
+                </div>
+
+                {/* Types */}
+                <div class="flex gap-2 mb-6">
+                  <For each={pal().types}>
+                    {(type) => <TypeBadge type={type} size="md" />}
+                  </For>
+                </div>
+
+                {/* Stats */}
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                  <StatCard label="HP" value={pal().stats.hp} icon="❤️" color="red" />
+                  <StatCard label="Attack" value={pal().stats.attack} icon="⚔️" color="orange" />
+                  <StatCard label="Defense" value={pal().stats.defense} icon="🛡️" color="blue" />
+                </div>
+
+                {/* Description */}
+                <Show when={pal().description}>
+                  <p class="text-gray-600">{pal().description}</p>
+                </Show>
+              </div>
+            </div>
           </div>
 
-          {/* Info */}
-          <div className="md:w-2/3 p-6">
-            <div className="flex items-baseline gap-3 mb-4">
-              <span className="text-gray-400 font-mono">#{pal.id}</span>
-              <h1 className="text-3xl font-bold text-gray-900">{pal.name}</h1>
+          {/* Tables Section */}
+          <div class="grid md:grid-cols-2 gap-8">
+            {/* Suitability Table */}
+            <div class="bg-white rounded-lg shadow p-6">
+              <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                <span>🔧</span>
+                <span>Work Suitability</span>
+              </h2>
+              <SuitabilityTable data={pal().suitability} />
             </div>
 
-            {/* Types */}
-            <div className="flex gap-2 mb-6">
-              {pal.types.map((type) => (
-                <TypeBadge key={type} type={type} size="md" />
-              ))}
+            {/* Drops Table */}
+            <div class="bg-white rounded-lg shadow p-6">
+              <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                <span>📦</span>
+                <span>Drops</span>
+              </h2>
+              <DropsTable data={pal().drops} />
             </div>
+          </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <StatCard label="HP" value={pal.stats.hp} icon="❤️" color="red" />
-              <StatCard label="Attack" value={pal.stats.attack} icon="⚔️" color="orange" />
-              <StatCard label="Defense" value={pal.stats.defense} icon="🛡️" color="blue" />
-            </div>
-
-            {/* Description */}
-            {pal.description && (
-              <p className="text-gray-600">{pal.description}</p>
-            )}
+          {/* Team Button */}
+          <div class="mt-8 text-center pb-20">
+            <TeamButton pal={pal()} size="lg" />
           </div>
         </div>
-      </div>
-
-      {/* Tables Section */}
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Suitability Table */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>🔧</span>
-            <span>Work Suitability</span>
-          </h2>
-          <SuitabilityTable data={pal.suitability} />
-        </div>
-
-        {/* Drops Table */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>📦</span>
-            <span>Drops</span>
-          </h2>
-          <DropsTable data={pal.drops} />
-        </div>
-      </div>
-
-      {/* Team Button */}
-      <div className="mt-8 text-center pb-20">
-        <TeamButton pal={pal} size="lg" />
-      </div>
-    </div>
+      )}
+    </Show>
   )
 }
 
 /**
  * Stat card component
  */
-function StatCard({
-  label,
-  value,
-  icon,
-  color,
-}: {
+function StatCard(props: {
   label: string
   value: number
   icon: string
@@ -168,12 +170,12 @@ function StatCard({
   }
 
   return (
-    <div className={`rounded-lg border p-3 ${colorClasses[color]}`}>
-      <div className="flex items-center gap-2 mb-1">
-        <span>{icon}</span>
-        <span className="text-sm text-gray-600">{label}</span>
+    <div class={`rounded-lg border p-3 ${colorClasses[props.color]}`}>
+      <div class="flex items-center gap-2 mb-1">
+        <span>{props.icon}</span>
+        <span class="text-sm text-gray-600">{props.label}</span>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
+      <div class="text-2xl font-bold text-gray-900">{props.value}</div>
     </div>
   )
 }
@@ -183,19 +185,19 @@ function StatCard({
  */
 function LoadingSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <div className="md:flex">
-          <div className="md:w-1/3 bg-gray-200 h-64" />
-          <div className="md:w-2/3 p-6">
-            <div className="h-8 bg-gray-200 rounded w-1/2 mb-4" />
-            <div className="flex gap-2 mb-6">
-              <div className="h-6 bg-gray-200 rounded-full w-20" />
+    <div class="max-w-4xl mx-auto px-4 py-8 animate-pulse">
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div class="md:flex">
+          <div class="md:w-1/3 bg-gray-200 h-64" />
+          <div class="md:w-2/3 p-6">
+            <div class="h-8 bg-gray-200 rounded w-1/2 mb-4" />
+            <div class="flex gap-2 mb-6">
+              <div class="h-6 bg-gray-200 rounded-full w-20" />
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="h-20 bg-gray-200 rounded" />
-              <div className="h-20 bg-gray-200 rounded" />
-              <div className="h-20 bg-gray-200 rounded" />
+            <div class="grid grid-cols-3 gap-4">
+              <div class="h-20 bg-gray-200 rounded" />
+              <div class="h-20 bg-gray-200 rounded" />
+              <div class="h-20 bg-gray-200 rounded" />
             </div>
           </div>
         </div>

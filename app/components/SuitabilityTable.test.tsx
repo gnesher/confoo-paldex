@@ -5,20 +5,20 @@ import { MOCK_SUITABILITY } from '../../tests/helpers/fixtures'
 
 describe('SuitabilityTable', () => {
   it('should render column headers', async () => {
-    const { screen } = await renderSimple(<SuitabilityTable data={MOCK_SUITABILITY} />)
+    const { screen } = await renderSimple(() => <SuitabilityTable data={MOCK_SUITABILITY} />)
     await expect.element(screen.getByText('Work Type')).toBeInTheDocument()
     await expect.element(screen.getByText('Level')).toBeInTheDocument()
   })
 
   it('should render a row for each suitability entry', async () => {
-    const { screen } = await renderSimple(<SuitabilityTable data={MOCK_SUITABILITY} />)
+    const { screen } = await renderSimple(() => <SuitabilityTable data={MOCK_SUITABILITY} />)
     await expect.element(screen.getByText('Kindling')).toBeInTheDocument()
     await expect.element(screen.getByText('Mining')).toBeInTheDocument()
     await expect.element(screen.getByText('Handiwork')).toBeInTheDocument()
   })
 
   it('should render work type icons', async () => {
-    const { screen } = await renderSimple(<SuitabilityTable data={MOCK_SUITABILITY} />)
+    const { screen } = await renderSimple(() => <SuitabilityTable data={MOCK_SUITABILITY} />)
     // Kindling icon is fire emoji
     await expect.element(screen.getByText('🔥')).toBeInTheDocument()
     // Mining icon is pickaxe
@@ -29,7 +29,7 @@ describe('SuitabilityTable', () => {
 
   it('should render correct number of filled stars for level', async () => {
     const { screen } = await renderSimple(
-      <SuitabilityTable data={[{ workType: 'Kindling', level: 3 }]} />
+      () => <SuitabilityTable data={[{ workType: 'Kindling', level: 3 }]} />
     )
     // 3 filled stars + 1 empty star
     const filledStars = await screen.getByText('⭐').all()
@@ -39,7 +39,7 @@ describe('SuitabilityTable', () => {
   })
 
   it('should show empty state when no data', async () => {
-    const { screen } = await renderSimple(<SuitabilityTable data={[]} />)
+    const { screen } = await renderSimple(() => <SuitabilityTable data={[]} />)
     await expect.element(
       screen.getByText('No work suitability data available.')
     ).toBeInTheDocument()

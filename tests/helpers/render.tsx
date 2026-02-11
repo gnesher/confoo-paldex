@@ -1,6 +1,7 @@
-import { Suspense } from 'react'
-import { render } from 'vitest-browser-react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Suspense } from 'solid-js'
+import type { JSX } from 'solid-js'
+import { render } from 'vitest-browser-solid'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import {
   createRootRoute,
   createRoute,
@@ -8,7 +9,7 @@ import {
   createMemoryHistory,
   RouterProvider,
   Outlet,
-} from '@tanstack/react-router'
+} from '@tanstack/solid-router'
 
 /**
  * Create a fresh QueryClient configured for testing.
@@ -41,10 +42,10 @@ interface RenderWithProvidersOptions {
  * 2. TanStack Router (memory history, catch-all route)
  * 3. Suspense boundary
  *
- * Returns vitest-browser-react screen (with locator methods) plus queryClient/router.
+ * Returns vitest-browser-solid screen (with locator methods) plus queryClient/router.
  */
 export async function renderWithProviders(
-  ui: React.ReactElement,
+  ui: () => JSX.Element,
   options: RenderWithProvidersOptions = {},
 ) {
   const { initialPath = '/', queryClient } = options
@@ -62,7 +63,7 @@ export async function renderWithProviders(
   const indexRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/',
-    component: () => ui,
+    component: ui,
   })
 
   // Catch-all route so any Link href doesn't cause a 404
@@ -79,11 +80,11 @@ export async function renderWithProviders(
     history: createMemoryHistory({ initialEntries: [initialPath] }),
   })
 
-  const screen = await render(
+  const screen = render(() => (
     <QueryClientProvider client={testQueryClient}>
       <RouterProvider router={router} />
-    </QueryClientProvider>,
-  )
+    </QueryClientProvider>
+  ))
 
   return { screen, queryClient: testQueryClient, router }
 }
@@ -93,17 +94,17 @@ export async function renderWithProviders(
  * Useful for components that don't use Link/navigation.
  */
 export async function renderWithQuery(
-  ui: React.ReactElement,
+  ui: () => JSX.Element,
   options: Omit<RenderWithProvidersOptions, 'initialPath'> = {},
 ) {
   const { queryClient } = options
   const testQueryClient = queryClient ?? createTestQueryClient()
 
-  const screen = await render(
+  const screen = render(() => (
     <QueryClientProvider client={testQueryClient}>
-      <Suspense fallback={<div>Loading...</div>}>{ui}</Suspense>
-    </QueryClientProvider>,
-  )
+      <Suspense fallback={<div>Loading...</div>}>{ui()}</Suspense>
+    </QueryClientProvider>
+  ))
 
   return { screen, queryClient: testQueryClient }
 }
@@ -112,7 +113,7 @@ export async function renderWithQuery(
  * Minimal render with just Suspense (no router, no query client).
  * Useful for pure presentational components.
  */
-export async function renderSimple(ui: React.ReactElement) {
-  const screen = await render(ui)
+export async function renderSimple(ui: () => JSX.Element) {
+  const screen = render(ui)
   return { screen }
 }

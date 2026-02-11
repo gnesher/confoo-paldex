@@ -1,6 +1,6 @@
-import { createRoute } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Suspense } from 'react'
+import { createRoute } from '@tanstack/solid-router'
+import { createQuery } from '@tanstack/solid-query'
+import { Suspense, Show, For } from 'solid-js'
 import { z } from 'zod'
 import { Route as rootRoute } from './__root'
 import { getPals } from '~/utils/pals'
@@ -55,30 +55,30 @@ function HomePage() {
   const search = Route.useSearch()
 
   return (
-    <div className="flex min-h-screen">
+    <div class="flex min-h-screen">
       {/* FilterSidebar with Form and type multi-select */}
       <FilterSidebar
         initialValues={{
-          q: search.q,
-          types: search.types,
-          atkMin: search.atkMin,
-          atkMax: search.atkMax,
+          q: search().q,
+          types: search().types,
+          atkMin: search().atkMin,
+          atkMax: search().atkMax,
         }}
       />
 
       {/* Main content */}
-      <main className="flex-1 p-6 overflow-hidden">
-        <header className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Paldex</h1>
-          <p className="text-gray-600 mt-1">
+      <main class="flex-1 p-6 overflow-hidden">
+        <header class="mb-6">
+          <h1 class="text-3xl font-bold text-gray-900">Paldex</h1>
+          <p class="text-gray-600 mt-1">
             A Pokedex for Palworld - Built with the TanStack Ecosystem
           </p>
-          <ActiveFilters search={search} />
+          <ActiveFilters search={search()} />
         </header>
 
         {/* Virtual grid with Suspense boundary */}
         <Suspense fallback={<LoadingSkeleton />}>
-          <PalGridWithData search={search} />
+          <PalGridWithData search={search()} />
         </Suspense>
       </main>
     </div>
@@ -88,50 +88,57 @@ function HomePage() {
 /**
  * Display active filters as badges
  */
-function ActiveFilters({ search }: { search: SearchParams }) {
-  const hasFilters =
-    search.q ||
-    search.types?.length ||
-    search.atkMin !== undefined ||
-    (search.atkMax !== undefined && search.atkMax < 200)
-
-  if (!hasFilters) return null
+function ActiveFilters(props: { search: SearchParams }) {
+  const hasFilters = () =>
+    props.search.q ||
+    props.search.types?.length ||
+    props.search.atkMin !== undefined ||
+    (props.search.atkMax !== undefined && props.search.atkMax < 200)
 
   return (
-    <div className="flex flex-wrap gap-2 mt-3">
-      {search.q && (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
-          Search: "{search.q}"
-        </span>
-      )}
-      {search.types?.map((type) => (
-        <span
-          key={type}
-          className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-        >
-          {type}
-        </span>
-      ))}
-      {(search.atkMin !== undefined || (search.atkMax !== undefined && search.atkMax < 200)) && (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
-          Attack: {search.atkMin ?? 0} - {search.atkMax ?? 200}
-        </span>
-      )}
-    </div>
+    <Show when={hasFilters()}>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <Show when={props.search.q}>
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+            Search: "{props.search.q}"
+          </span>
+        </Show>
+        <Show when={props.search.types?.length}>
+          <For each={props.search.types}>
+            {(type) => (
+              <span
+                class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+              >
+                {type}
+              </span>
+            )}
+          </For>
+        </Show>
+        <Show when={props.search.atkMin !== undefined || (props.search.atkMax !== undefined && props.search.atkMax < 200)}>
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
+            Attack: {props.search.atkMin ?? 0} - {props.search.atkMax ?? 200}
+          </span>
+        </Show>
+      </div>
+    </Show>
   )
 }
 
 /**
  * Component that fetches and displays Pal data
  */
-function PalGridWithData({ search }: { search: SearchParams }) {
-  const { data: pals } = useSuspenseQuery(palsQueryOptions(search))
+function PalGridWithData(props: { search: SearchParams }) {
+  const query = createQuery(() => palsQueryOptions(props.search))
 
   return (
-    <div>
-      <div className="text-sm text-gray-500 mb-4">{pals.length} Pals found</div>
-      <PalGrid pals={pals} />
-    </div>
+    <Show when={query.data}>
+      {(pals) => (
+        <div>
+          <div class="text-sm text-gray-500 mb-4">{pals().length} Pals found</div>
+          <PalGrid pals={pals()} />
+        </div>
+      )}
+    </Show>
   )
 }
 
@@ -141,11 +148,11 @@ function PalGridWithData({ search }: { search: SearchParams }) {
 function LoadingSkeleton() {
   return (
     <div>
-      <div className="h-5 w-24 bg-gray-200 rounded animate-pulse mb-4" />
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <PalCardSkeleton key={i} />
-        ))}
+      <div class="h-5 w-24 bg-gray-200 rounded animate-pulse mb-4" />
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <For each={Array.from({ length: 12 })}>
+          {() => <PalCardSkeleton />}
+        </For>
       </div>
     </div>
   )

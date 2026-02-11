@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render } from 'vitest-browser-react'
-import { Suspense } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render } from 'vitest-browser-solid'
+import { Suspense } from 'solid-js'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import {
   createMemoryHistory,
   createRootRoute,
@@ -9,7 +9,7 @@ import {
   createRouter,
   RouterProvider,
   Outlet,
-} from '@tanstack/react-router'
+} from '@tanstack/solid-router'
 import { TeamBottomBar } from '~/components/TeamBottomBar'
 import { TeamButton } from '~/components/TeamButton'
 import { MOCK_LAMBALL, MOCK_FOXPARKS } from '../helpers/fixtures'
@@ -62,11 +62,11 @@ describe('Team Management Flow', () => {
       history: createMemoryHistory({ initialEntries: ['/'] }),
     })
 
-    const screen = await render(
+    const screen = render(() => (
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
-    )
+    ))
 
     return { screen }
   }

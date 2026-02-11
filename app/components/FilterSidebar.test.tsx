@@ -4,8 +4,8 @@ import { renderWithProviders } from '../../tests/helpers/render'
 
 // Mock useNavigate to verify navigation calls
 const mockNavigate = vi.fn()
-vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
+vi.mock('@tanstack/solid-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/solid-router')>()
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -19,14 +19,14 @@ describe('FilterSidebar', () => {
 
   it('should render the Filters heading', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
     await expect.element(screen.getByText('Filters')).toBeInTheDocument()
   })
 
   it('should render search input with placeholder', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
     await expect.element(screen.getByText('Search')).toBeInTheDocument()
     await expect.element(
@@ -36,7 +36,7 @@ describe('FilterSidebar', () => {
 
   it('should render search input with initial value', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{ q: 'lam' }} />
+      () => <FilterSidebar initialValues={{ q: 'lam' }} />
     )
     await expect.element(
       screen.getByPlaceholder('Search Pals by name...')
@@ -45,7 +45,7 @@ describe('FilterSidebar', () => {
 
   it('should call navigate when search input changes (after debounce)', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
 
     const input = screen.getByPlaceholder('Search Pals by name...')
@@ -62,14 +62,14 @@ describe('FilterSidebar', () => {
 
   it('should render the type multi-select button', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
     await expect.element(screen.getByText('Select types...')).toBeInTheDocument()
   })
 
   it('should open type dropdown on click', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
     await screen.getByText('Select types...').click()
 
@@ -84,7 +84,7 @@ describe('FilterSidebar', () => {
 
   it('should toggle a type checkbox and call navigate', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
 
     // Open dropdown
@@ -99,32 +99,36 @@ describe('FilterSidebar', () => {
 
   it('should display selected type count', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{ types: ['Fire', 'Water'] }} />
+      () => <FilterSidebar initialValues={{ types: ['Fire', 'Water'] }} />
     )
     await expect.element(screen.getByText('2 type(s) selected')).toBeInTheDocument()
   })
 
   it('should display selected types as removable badges', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{ types: ['Fire', 'Water'] }} />
+      () => <FilterSidebar initialValues={{ types: ['Fire', 'Water'] }} />
     )
-    // Badges are rendered below the dropdown
-    const fireBadges = await screen.getByText('Fire').all()
-    expect(fireBadges.length).toBeGreaterThanOrEqual(1)
-    const waterBadges = await screen.getByText('Water').all()
-    expect(waterBadges.length).toBeGreaterThanOrEqual(1)
+    // Wait for the badges to render (they appear below the dropdown)
+    await expect.element(screen.getByText('2 type(s) selected')).toBeInTheDocument()
+    // Badges render the type name and a remove button
+    await vi.waitFor(async () => {
+      const fireBadges = await screen.getByText('Fire').all()
+      expect(fireBadges.length).toBeGreaterThanOrEqual(1)
+      const waterBadges = await screen.getByText('Water').all()
+      expect(waterBadges.length).toBeGreaterThanOrEqual(1)
+    }, { timeout: 2000 })
   })
 
   it('should render attack range slider', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
     await expect.element(screen.getByText('Attack Range')).toBeInTheDocument()
   })
 
   it('should not show "Clear all filters" when no filters are active', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{}} />
+      () => <FilterSidebar initialValues={{}} />
     )
     await expect.element(
       screen.getByText('Clear all filters')
@@ -133,14 +137,14 @@ describe('FilterSidebar', () => {
 
   it('should show "Clear all filters" when a search is active', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{ q: 'test' }} />
+      () => <FilterSidebar initialValues={{ q: 'test' }} />
     )
     await expect.element(screen.getByText('Clear all filters')).toBeInTheDocument()
   })
 
   it('should show "Clear all filters" when types are selected', async () => {
     const { screen } = await renderWithProviders(
-      <FilterSidebar initialValues={{ types: ['Fire'] }} />
+      () => <FilterSidebar initialValues={{ types: ['Fire'] }} />
     )
     await expect.element(screen.getByText('Clear all filters')).toBeInTheDocument()
   })

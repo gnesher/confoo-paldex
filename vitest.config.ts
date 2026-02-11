@@ -1,9 +1,9 @@
 import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
+import solid from 'vite-plugin-solid'
 import { playwright } from '@vitest/browser-playwright'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [solid()],
   test: {
     globals: true,
     setupFiles: ['./tests/setup.browser.ts'],

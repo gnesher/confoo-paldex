@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render } from 'vitest-browser-react'
-import { Suspense } from 'react'
-import { QueryClient, QueryClientProvider, useSuspenseQuery } from '@tanstack/react-query'
+import { render } from 'vitest-browser-solid'
+import { Suspense, Show, For } from 'solid-js'
+import { QueryClient, QueryClientProvider, createQuery } from '@tanstack/solid-query'
 import {
   createMemoryHistory,
   createRootRoute,
@@ -10,7 +10,7 @@ import {
   RouterProvider,
   Outlet,
   Link,
-} from '@tanstack/react-router'
+} from '@tanstack/solid-router'
 import { MOCK_LAMBALL } from '../helpers/fixtures'
 import { clearTeam } from '~/stores/team'
 import { SuitabilityTable } from '~/components/SuitabilityTable'
@@ -32,75 +32,84 @@ const mockGetPalById = vi.mocked(getPalById)
 /**
  * Simplified detail page component that mirrors the real one.
  */
-function TestDetailPage({ palId }: { palId: string }) {
+function TestDetailPage(props: { palId: string }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 py-3">
-          <Link to="/" className="inline-flex items-center text-gray-600">
-            <span className="mr-2">←</span>
+    <div class="min-h-screen bg-gray-50">
+      <div class="bg-white shadow">
+        <div class="max-w-4xl mx-auto px-4 py-3">
+          <Link to="/" class="inline-flex items-center text-gray-600">
+            <span class="mr-2">←</span>
             <span>Back to Paldex</span>
           </Link>
         </div>
       </div>
       <Suspense fallback={<div>Loading detail...</div>}>
-        <DetailContent palId={palId} />
+        <DetailContent palId={props.palId} />
       </Suspense>
     </div>
   )
 }
 
-function DetailContent({ palId }: { palId: string }) {
-  const { data: pal } = useSuspenseQuery({
-    queryKey: ['pal', palId],
-    queryFn: () => getPalById(palId),
-  })
-
-  if (!pal) {
-    return <PalNotFoundState palId={palId} />
-  }
+function DetailContent(props: { palId: string }) {
+  const query = createQuery(() => ({
+    queryKey: ['pal', props.palId],
+    queryFn: () => getPalById(props.palId),
+  }))
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <div className="md:flex">
-          <div className="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
-            <img src={pal.imageUrl} alt={pal.name} className="w-48 h-48 object-contain" />
+    <Show
+      when={query.data}
+      fallback={
+        <Show when={query.isSuccess}>
+          <PalNotFoundState palId={props.palId} />
+        </Show>
+      }
+    >
+      {(pal) => (
+        <div class="max-w-4xl mx-auto px-4 py-8">
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="md:flex">
+              <div class="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
+                <img src={pal().imageUrl} alt={pal().name} class="w-48 h-48 object-contain" />
+              </div>
+              <div class="md:w-2/3 p-6">
+                <div class="flex items-baseline gap-3 mb-4">
+                  <span class="text-gray-400 font-mono">#{pal().id}</span>
+                  <h1 class="text-3xl font-bold text-gray-900">{pal().name}</h1>
+                </div>
+                <div class="flex gap-2 mb-6">
+                  <For each={pal().types}>
+                    {(type) => (
+                      <span class={`px-3 py-1 rounded-full text-sm font-medium text-white ${PAL_TYPE_COLORS[type]}`}>
+                        {type}
+                      </span>
+                    )}
+                  </For>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                  <div class="rounded-lg border p-3"><span>HP</span><div>{pal().stats.hp}</div></div>
+                  <div class="rounded-lg border p-3"><span>Attack</span><div>{pal().stats.attack}</div></div>
+                  <div class="rounded-lg border p-3"><span>Defense</span><div>{pal().stats.defense}</div></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="md:w-2/3 p-6">
-            <div className="flex items-baseline gap-3 mb-4">
-              <span className="text-gray-400 font-mono">#{pal.id}</span>
-              <h1 className="text-3xl font-bold text-gray-900">{pal.name}</h1>
+          <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow p-6">
+              <h2 class="text-xl font-semibold mb-4">Work Suitability</h2>
+              <SuitabilityTable data={pal().suitability} />
             </div>
-            <div className="flex gap-2 mb-6">
-              {pal.types.map((type) => (
-                <span key={type} className={`px-3 py-1 rounded-full text-sm font-medium text-white ${PAL_TYPE_COLORS[type]}`}>
-                  {type}
-                </span>
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="rounded-lg border p-3"><span>HP</span><div>{pal.stats.hp}</div></div>
-              <div className="rounded-lg border p-3"><span>Attack</span><div>{pal.stats.attack}</div></div>
-              <div className="rounded-lg border p-3"><span>Defense</span><div>{pal.stats.defense}</div></div>
+            <div class="bg-white rounded-lg shadow p-6">
+              <h2 class="text-xl font-semibold mb-4">Drops</h2>
+              <DropsTable data={pal().drops} />
             </div>
           </div>
+          <div class="mt-8 text-center pb-20">
+            <TeamButton pal={pal()} size="lg" />
+          </div>
         </div>
-      </div>
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Work Suitability</h2>
-          <SuitabilityTable data={pal.suitability} />
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Drops</h2>
-          <DropsTable data={pal.drops} />
-        </div>
-      </div>
-      <div className="mt-8 text-center pb-20">
-        <TeamButton pal={pal} size="lg" />
-      </div>
-    </div>
+      )}
+    </Show>
   )
 }
 
@@ -143,11 +152,11 @@ async function renderDetailPage(palId: string) {
     history: createMemoryHistory({ initialEntries: ['/detail'] }),
   })
 
-  const screen = await render(
+  const screen = render(() => (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
-  )
+  ))
 
   return { screen, queryClient }
 }

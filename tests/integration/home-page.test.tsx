@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render } from 'vitest-browser-react'
-import { Suspense } from 'react'
-import { QueryClient, QueryClientProvider, useSuspenseQuery } from '@tanstack/react-query'
+import { render } from 'vitest-browser-solid'
+import { Suspense } from 'solid-js'
+import { QueryClient, QueryClientProvider, createQuery } from '@tanstack/solid-query'
 import {
   createMemoryHistory,
   createRootRoute,
@@ -9,7 +9,7 @@ import {
   createRouter,
   RouterProvider,
   Outlet,
-} from '@tanstack/react-router'
+} from '@tanstack/solid-router'
 import { createMockPals } from '../helpers/fixtures'
 import { clearTeam } from '~/stores/team'
 import { PalGrid } from '~/components/PalGrid'
@@ -31,12 +31,12 @@ const mockGetPals = vi.mocked(getPals)
  */
 function TestHomePage() {
   return (
-    <div className="flex min-h-screen">
+    <div class="flex min-h-screen">
       <FilterSidebar initialValues={{}} />
-      <main className="flex-1 p-6 overflow-hidden">
-        <header className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Paldex</h1>
-          <p className="text-gray-600 mt-1">
+      <main class="flex-1 p-6 overflow-hidden">
+        <header class="mb-6">
+          <h1 class="text-3xl font-bold text-gray-900">Paldex</h1>
+          <p class="text-gray-600 mt-1">
             A Pokedex for Palworld - Built with the TanStack Ecosystem
           </p>
         </header>
@@ -49,14 +49,14 @@ function TestHomePage() {
 }
 
 function PalGridWithData() {
-  const { data: pals } = useSuspenseQuery({
+  const query = createQuery(() => ({
     queryKey: ['pals', {}],
     queryFn: () => getPals({}),
-  })
+  }))
   return (
     <div>
-      <div className="text-sm text-gray-500 mb-4">{pals.length} Pals found</div>
-      <PalGrid pals={pals} />
+      <div class="text-sm text-gray-500 mb-4">{query.data?.length ?? 0} Pals found</div>
+      <PalGrid pals={query.data ?? []} />
     </div>
   )
 }
@@ -94,11 +94,11 @@ async function renderHomePage() {
     history: createMemoryHistory({ initialEntries: ['/'] }),
   })
 
-  const screen = await render(
+  const screen = render(() => (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
-  )
+  ))
 
   return { screen, queryClient }
 }
