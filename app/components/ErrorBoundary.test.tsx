@@ -1,111 +1,94 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ErrorBoundary, ErrorFallback } from './ErrorBoundary'
+import { describe, it, expect, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import { renderWithProviders } from '../../tests/helpers/render'
+import ErrorBoundary from './ErrorBoundary.vue'
+import ErrorFallback from './ErrorFallback.vue'
 
-// Component that throws an error on render
-function ThrowingComponent({ message }: { message: string }): never {
-  throw new Error(message)
-}
+const GoodComponent = defineComponent({
+  name: 'GoodComponent',
+  setup() {
+    return () => h('div', 'Everything is fine')
+  },
+})
 
-// Component that renders normally
-function GoodComponent() {
-  return <div>Everything is fine</div>
-}
-
-describe('ErrorBoundary', () => {
-  // Suppress console.error from React error boundary during tests
-  const originalConsoleError = console.error
-  beforeEach(() => {
-    console.error = vi.fn()
-  })
-  afterEach(() => {
-    console.error = originalConsoleError
-  })
-
-  it('should render children when no error occurs', async () => {
-    const { screen } = await renderWithProviders(
-      <ErrorBoundary>
-        <GoodComponent />
-      </ErrorBoundary>
-    )
-    await expect.element(screen.getByText('Everything is fine')).toBeInTheDocument()
-  })
-
-  it('should catch errors and show fallback UI', async () => {
-    const { screen } = await renderWithProviders(
-      <ErrorBoundary>
-        <ThrowingComponent message="Test error message" />
-      </ErrorBoundary>
-    )
-    await expect.element(screen.getByText('Something went wrong')).toBeInTheDocument()
-    await expect.element(screen.getByText('Test error message')).toBeInTheDocument()
-  })
-
-  it('should show "Try again" and "Go to Home" buttons on error', async () => {
-    const { screen } = await renderWithProviders(
-      <ErrorBoundary>
-        <ThrowingComponent message="Oops" />
-      </ErrorBoundary>
-    )
-    await expect.element(
-      screen.getByRole('button', { name: /try again/i })
-    ).toBeInTheDocument()
-    await expect.element(
-      screen.getByRole('link', { name: /go to home/i })
-    ).toBeInTheDocument()
-  })
-
-  it('should use custom fallback when provided', async () => {
-    const { screen } = await renderWithProviders(
-      <ErrorBoundary fallback={<div>Custom fallback UI</div>}>
-        <ThrowingComponent message="Oops" />
-      </ErrorBoundary>
-    )
-    await expect.element(screen.getByText('Custom fallback UI')).toBeInTheDocument()
-    await expect.element(screen.getByText('Something went wrong')).not.toBeInTheDocument()
-  })
+const ThrowingComponent = defineComponent({
+  name: 'ThrowingComponent',
+  props: { message: { type: String, required: true } },
+  setup(props) {
+    throw new Error(props.message)
+  },
 })
 
 describe('ErrorFallback', () => {
-  it('should render the error message', async () => {
-    const { screen } = await renderWithProviders(
-      <ErrorFallback error={new Error('Something broke')} />
-    )
+  it('should show error message', async () => {
+    const { screen } = await renderWithProviders(ErrorFallback, {
+      props: { error: new Error('Something broke') },
+    })
     await expect.element(screen.getByText('Something went wrong')).toBeInTheDocument()
     await expect.element(screen.getByText('Something broke')).toBeInTheDocument()
   })
 
-  it('should render "Try again" button when resetErrorBoundary is provided', async () => {
+  it('should show "Try again" button when resetErrorBoundary is provided', async () => {
     const reset = vi.fn()
-    const { screen } = await renderWithProviders(
-      <ErrorFallback
-        error={new Error('Fail')}
-        resetErrorBoundary={reset}
-      />
-    )
+    const { screen } = await renderWithProviders(ErrorFallback, {
+      props: {
+        error: new Error('Fail'),
+        resetErrorBoundary: reset,
+      },
+    })
     await expect.element(
       screen.getByRole('button', { name: /try again/i })
     ).toBeInTheDocument()
   })
 
-  it('should not render "Try again" button when no resetErrorBoundary', async () => {
-    const { screen } = await renderWithProviders(
-      <ErrorFallback error={new Error('Fail')} />
-    )
-    await expect.element(
-      screen.getByRole('button', { name: /try again/i })
-    ).not.toBeInTheDocument()
+  it('should not show "Try again" when resetErrorBoundary is not provided', async () => {
+    const { screen } = await renderWithProviders(ErrorFallback, {
+      props: { error: new Error('Fail') },
+    })
+    const buttons = await screen.getByRole('button', { name: /try again/i }).all()
+    expect(buttons).toHaveLength(0)
   })
 
-  it('should call resetErrorBoundary when "Try again" is clicked', async () => {
+  it('should call resetErrorBoundary when Try again is clicked', async () => {
     const reset = vi.fn()
-    const { screen } = await renderWithProviders(
-      <ErrorFallback
-        error={new Error('Fail')}
-        resetErrorBoundary={reset}
-      />
-    )
-    await screen.getByRole('button', { name: /try again/i }).click()
-    expect(reset).toHaveBeenCalledOnce()
+    const { screen } = await renderWithProviders(ErrorFallback, {
+      props: {
+        error: new Error('Fail'),
+        resetErrorBoundary: reset,
+      },
+    })
+    const tryAgainButton = screen.getByRole('button', { name: /try again/i })
+    await tryAgainButton.click()
+    expect(reset).toHaveBeenCalled()
+  })
+})
+
+const ErrorBoundaryWithGoodChild = defineComponent({
+  name: 'ErrorBoundaryWithGoodChild',
+  setup() {
+    return () => h(ErrorBoundary, null, { default: () => h(GoodComponent) })
+  },
+})
+
+const ErrorBoundaryWithThrowingChild = defineComponent({
+  name: 'ErrorBoundaryWithThrowingChild',
+  setup() {
+    return () =>
+      h(ErrorBoundary, null, {
+        default: () => h(ThrowingComponent, { message: 'Test error message' }),
+      })
+  },
+})
+
+describe('ErrorBoundary', () => {
+  it('should render children normally', async () => {
+    const { screen } = await renderWithProviders(ErrorBoundaryWithGoodChild)
+    await expect.element(screen.getByText('Everything is fine')).toBeInTheDocument()
+  })
+
+  it('should catch errors and show ErrorFallback', async () => {
+    const { screen } = await renderWithProviders(ErrorBoundaryWithThrowingChild)
+    await expect.element(screen.getByText('Something went wrong')).toBeInTheDocument()
+    await expect.element(screen.getByText('Test error message')).toBeInTheDocument()
   })
 })

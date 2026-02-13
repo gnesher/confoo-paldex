@@ -9,7 +9,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -23,5 +24,5 @@
       "~/*": ["./app/*"]
     }
   },
-  "include": ["app/**/*", "tests/**/*", "*.config.ts"]
+  "include": ["app/**/*", "tests/**/*", "*.config.ts", "env.d.ts"]
 }

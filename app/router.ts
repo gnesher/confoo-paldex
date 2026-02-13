@@ -1,5 +1,5 @@
-import { createRouter as createTanStackRouter } from '@tanstack/react-router'
-import { QueryClient } from '@tanstack/react-query'
+import { createRouter as createTanStackRouter } from '@tanstack/vue-router'
+import { QueryClient } from '@tanstack/vue-query'
 import { routeTree } from './routeTree.gen'
 
 export function createRouter() {
@@ -14,7 +14,7 @@ export function createRouter() {
   const router = createTanStackRouter({
     routeTree,
     defaultPreload: 'intent',
-    scrollRestoration: true, // Use router option instead of component
+    scrollRestoration: true,
     context: {
       queryClient,
     },
@@ -23,7 +23,7 @@ export function createRouter() {
   return { router, queryClient }
 }
 
-declare module '@tanstack/react-router' {
+declare module '@tanstack/vue-router' {
   interface Register {
     router: ReturnType<typeof createRouter>['router']
   }

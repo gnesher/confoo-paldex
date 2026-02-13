@@ -1,14 +1,14 @@
-import { createRoute, Link } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Suspense, useEffect } from 'react'
+import { computed, defineComponent, h, watchEffect } from 'vue'
+import { createRoute, Link, useParams } from '@tanstack/vue-router'
+import { useQuery } from '@tanstack/vue-query'
 import { Route as rootRoute } from '../__root'
 import { getPalById } from '~/utils/pals'
-import { SuitabilityTable } from '~/components/SuitabilityTable'
-import { DropsTable } from '~/components/DropsTable'
-import { TeamButton } from '~/components/TeamButton'
+import SuitabilityTable from '~/components/SuitabilityTable.vue'
+import DropsTable from '~/components/DropsTable.vue'
+import TeamButton from '~/components/TeamButton.vue'
 import { PalNotFoundState } from '~/components/EmptyState'
-import { TypeBadge } from '~/components/TypeBadge'
-import { PalImage } from '~/components/PalImage'
+import TypeBadge from '~/components/TypeBadge.vue'
+import PalImage from '~/components/PalImage.vue'
 
 /**
  * Query options factory for getPalById
@@ -23,183 +23,177 @@ function palQueryOptions(id: string) {
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/pals/$palId',
-  component: PalDetailPage,
+  component: defineComponent({
+    name: 'PalDetailPage',
+    setup() {
+      const params = useParams({ from: '/pals/$palId' })
+
+      return () => {
+        const palId = params.value.palId
+        return h('div', { class: 'min-h-screen bg-gray-50' }, [
+          // Back navigation
+          h('div', { class: 'bg-white shadow' }, [
+            h('div', { class: 'max-w-4xl mx-auto px-4 py-3' }, [
+              h(Link, {
+                to: '/',
+                class: 'inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors',
+              }, () => [
+                h('span', { class: 'mr-2' }, '←'),
+                h('span', {}, 'Back to Paldex'),
+              ]),
+            ]),
+          ]),
+          h(PalDetailContent, { palId }),
+        ])
+      }
+    },
+  }),
 })
-
-function PalDetailPage() {
-  const { palId } = Route.useParams()
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Back navigation */}
-      <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 py-3">
-          <Link
-            to="/"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <span className="mr-2">←</span>
-            <span>Back to Paldex</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Main content with Suspense */}
-      <Suspense fallback={<LoadingSkeleton />}>
-        <PalDetailContent palId={palId} />
-      </Suspense>
-    </div>
-  )
-}
 
 /**
  * Pal detail content with data fetching
  */
-function PalDetailContent({ palId }: { palId: string }) {
-  const { data: pal } = useSuspenseQuery(palQueryOptions(palId))
+const PalDetailContent = defineComponent({
+  name: 'PalDetailContent',
+  props: {
+    palId: { type: String, required: true },
+  },
+  setup(props) {
+    const { data: pal, isLoading } = useQuery(computed(() => palQueryOptions(props.palId)))
 
-  // Update document title
-  useEffect(() => {
-    if (pal) {
-      document.title = `${pal.name} | Paldex`
-    }
+    // Update document title
+    watchEffect(() => {
+      if (pal.value) {
+        document.title = `${pal.value.name} | Paldex`
+      }
+    })
+
     return () => {
-      document.title = 'Paldex - TanStack Ecosystem Demo'
+      if (isLoading.value) {
+        return h(DetailLoadingSkeleton)
+      }
+
+      if (!pal.value) {
+        return h(PalNotFoundState, { palId: props.palId })
+      }
+
+      const p = pal.value
+      return h('div', { class: 'max-w-4xl mx-auto px-4 py-8' }, [
+        // Hero Section
+        h('div', { class: 'bg-white rounded-lg shadow-lg overflow-hidden mb-8' }, [
+          h('div', { class: 'md:flex' }, [
+            // Image
+            h('div', { class: 'md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8' }, [
+              h(PalImage, {
+                src: p.imageUrl,
+                alt: p.name,
+                palId: p.id,
+                class: 'w-48 h-48 object-contain',
+                fallbackIconSize: 'lg',
+              }),
+            ]),
+            // Info
+            h('div', { class: 'md:w-2/3 p-6' }, [
+              h('div', { class: 'flex items-baseline gap-3 mb-4' }, [
+                h('span', { class: 'text-gray-400 font-mono' }, `#${p.id}`),
+                h('h1', { class: 'text-3xl font-bold text-gray-900' }, p.name),
+              ]),
+              // Types
+              h('div', { class: 'flex gap-2 mb-6' },
+                p.types.map((type) => h(TypeBadge, { key: type, type, size: 'md' }))
+              ),
+              // Stats
+              h('div', { class: 'grid grid-cols-3 gap-4 mb-6' }, [
+                h(StatCard, { label: 'HP', value: p.stats.hp, icon: '❤️', color: 'red' }),
+                h(StatCard, { label: 'Attack', value: p.stats.attack, icon: '⚔️', color: 'orange' }),
+                h(StatCard, { label: 'Defense', value: p.stats.defense, icon: '🛡️', color: 'blue' }),
+              ]),
+              // Description
+              p.description
+                ? h('p', { class: 'text-gray-600' }, p.description)
+                : null,
+            ]),
+          ]),
+        ]),
+        // Tables Section
+        h('div', { class: 'grid md:grid-cols-2 gap-8' }, [
+          h('div', { class: 'bg-white rounded-lg shadow p-6' }, [
+            h('h2', { class: 'text-xl font-semibold mb-4 flex items-center gap-2' }, [
+              h('span', {}, '🔧'),
+              h('span', {}, 'Work Suitability'),
+            ]),
+            h(SuitabilityTable, { data: p.suitability }),
+          ]),
+          h('div', { class: 'bg-white rounded-lg shadow p-6' }, [
+            h('h2', { class: 'text-xl font-semibold mb-4 flex items-center gap-2' }, [
+              h('span', {}, '📦'),
+              h('span', {}, 'Drops'),
+            ]),
+            h(DropsTable, { data: p.drops }),
+          ]),
+        ]),
+        // Team Button
+        h('div', { class: 'mt-8 text-center pb-20' }, [
+          h(TeamButton, { pal: p, size: 'lg' }),
+        ]),
+      ])
     }
-  }, [pal])
-
-  // Handle not found
-  if (!pal) {
-    return <PalNotFoundState palId={palId} />
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Hero Section */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <div className="md:flex">
-          {/* Image */}
-          <div className="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
-            <PalImage
-              src={pal.imageUrl}
-              alt={pal.name}
-              palId={pal.id}
-              className="w-48 h-48 object-contain"
-              fallbackIconSize="lg"
-            />
-          </div>
-
-          {/* Info */}
-          <div className="md:w-2/3 p-6">
-            <div className="flex items-baseline gap-3 mb-4">
-              <span className="text-gray-400 font-mono">#{pal.id}</span>
-              <h1 className="text-3xl font-bold text-gray-900">{pal.name}</h1>
-            </div>
-
-            {/* Types */}
-            <div className="flex gap-2 mb-6">
-              {pal.types.map((type) => (
-                <TypeBadge key={type} type={type} size="md" />
-              ))}
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <StatCard label="HP" value={pal.stats.hp} icon="❤️" color="red" />
-              <StatCard label="Attack" value={pal.stats.attack} icon="⚔️" color="orange" />
-              <StatCard label="Defense" value={pal.stats.defense} icon="🛡️" color="blue" />
-            </div>
-
-            {/* Description */}
-            {pal.description && (
-              <p className="text-gray-600">{pal.description}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Tables Section */}
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Suitability Table */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>🔧</span>
-            <span>Work Suitability</span>
-          </h2>
-          <SuitabilityTable data={pal.suitability} />
-        </div>
-
-        {/* Drops Table */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span>📦</span>
-            <span>Drops</span>
-          </h2>
-          <DropsTable data={pal.drops} />
-        </div>
-      </div>
-
-      {/* Team Button */}
-      <div className="mt-8 text-center pb-20">
-        <TeamButton pal={pal} size="lg" />
-      </div>
-    </div>
-  )
-}
+  },
+})
 
 /**
  * Stat card component
  */
-function StatCard({
-  label,
-  value,
-  icon,
-  color,
-}: {
-  label: string
-  value: number
-  icon: string
-  color: string
-}) {
-  const colorClasses: Record<string, string> = {
-    red: 'bg-red-50 border-red-200',
-    orange: 'bg-orange-50 border-orange-200',
-    blue: 'bg-blue-50 border-blue-200',
-  }
+const StatCard = defineComponent({
+  name: 'StatCard',
+  props: {
+    label: { type: String, required: true },
+    value: { type: Number, required: true },
+    icon: { type: String, required: true },
+    color: { type: String, required: true },
+  },
+  setup(props) {
+    const colorClasses: Record<string, string> = {
+      red: 'bg-red-50 border-red-200',
+      orange: 'bg-orange-50 border-orange-200',
+      blue: 'bg-blue-50 border-blue-200',
+    }
 
-  return (
-    <div className={`rounded-lg border p-3 ${colorClasses[color]}`}>
-      <div className="flex items-center gap-2 mb-1">
-        <span>{icon}</span>
-        <span className="text-sm text-gray-600">{label}</span>
-      </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-    </div>
-  )
-}
+    return () =>
+      h('div', { class: `rounded-lg border p-3 ${colorClasses[props.color]}` }, [
+        h('div', { class: 'flex items-center gap-2 mb-1' }, [
+          h('span', {}, props.icon),
+          h('span', { class: 'text-sm text-gray-600' }, props.label),
+        ]),
+        h('div', { class: 'text-2xl font-bold text-gray-900' }, String(props.value)),
+      ])
+  },
+})
 
 /**
  * Loading skeleton
  */
-function LoadingSkeleton() {
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        <div className="md:flex">
-          <div className="md:w-1/3 bg-gray-200 h-64" />
-          <div className="md:w-2/3 p-6">
-            <div className="h-8 bg-gray-200 rounded w-1/2 mb-4" />
-            <div className="flex gap-2 mb-6">
-              <div className="h-6 bg-gray-200 rounded-full w-20" />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="h-20 bg-gray-200 rounded" />
-              <div className="h-20 bg-gray-200 rounded" />
-              <div className="h-20 bg-gray-200 rounded" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+const DetailLoadingSkeleton = defineComponent({
+  name: 'DetailLoadingSkeleton',
+  setup() {
+    return () =>
+      h('div', { class: 'max-w-4xl mx-auto px-4 py-8 animate-pulse' }, [
+        h('div', { class: 'bg-white rounded-lg shadow-lg overflow-hidden mb-8' }, [
+          h('div', { class: 'md:flex' }, [
+            h('div', { class: 'md:w-1/3 bg-gray-200 h-64' }),
+            h('div', { class: 'md:w-2/3 p-6' }, [
+              h('div', { class: 'h-8 bg-gray-200 rounded w-1/2 mb-4' }),
+              h('div', { class: 'flex gap-2 mb-6' }, [
+                h('div', { class: 'h-6 bg-gray-200 rounded-full w-20' }),
+              ]),
+              h('div', { class: 'grid grid-cols-3 gap-4' }, [
+                h('div', { class: 'h-20 bg-gray-200 rounded' }),
+                h('div', { class: 'h-20 bg-gray-200 rounded' }),
+                h('div', { class: 'h-20 bg-gray-200 rounded' }),
+              ]),
+            ]),
+          ]),
+        ]),
+      ])
+  },
+})

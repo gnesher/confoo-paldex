@@ -11,28 +11,29 @@
     "test:components": "vitest --exclude '**/tests/browser/**'",
     "test:pages": "vitest tests/browser",
     "test:ui": "vitest --ui",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@tanstack/react-pacer": "^0.1.0",
-    "@tanstack/react-query": "^5.62.7",
-    "@tanstack/react-query-devtools": "^5.62.7",
-    "@tanstack/react-router": "^1.95.1",
-    "@tanstack/react-router-devtools": "^1.95.1",
-    "@tanstack/react-store": "^0.7.0",
-    "@tanstack/react-table": "^8.20.6",
-    "@tanstack/react-virtual": "^3.11.2",
+    "@tanstack/history": "link:../router/packages/history",
+    "@tanstack/pacer": "^0.1.0",
+    "@tanstack/router-core": "link:../router/packages/router-core",
+    "@tanstack/router-devtools-core": "link:../router/packages/router-devtools-core",
     "@tanstack/store": "^0.7.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "vitest-browser-react": "^2.0.5",
+    "@tanstack/vue-query": "^5.62.7",
+    "@tanstack/vue-query-devtools": "^5.62.7",
+    "@tanstack/vue-router": "link:../router/packages/vue-router",
+    "@tanstack/vue-router-devtools": "link:../router/packages/vue-router-devtools",
+    "@tanstack/vue-store": "^0.7.0",
+    "@tanstack/vue-table": "^8.20.6",
+    "@tanstack/vue-virtual": "^3.11.2",
+    "vue": "^3.5.13",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "@types/react": "^18.3.14",
-    "@types/react-dom": "^18.3.3",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@testing-library/vue": "^8.1.0",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vitejs/plugin-vue-jsx": "^4.1.2",
     "@vitest/browser-playwright": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.20",
@@ -41,6 +42,8 @@
     "typescript": "^5.7.2",
     "vite": "^6.0.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "vitest-browser-vue": "^2.0.2",
+    "vue-tsc": "^2.2.0"
   }
 }

@@ -1,175 +1,133 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render } from 'vitest-browser-react'
-import { Suspense } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  createMemoryHistory,
-  createRootRoute,
-  createRoute,
-  createRouter,
-  RouterProvider,
-  Outlet,
-} from '@tanstack/react-router'
+import { render } from 'vitest-browser-vue'
+import { renderWithProviders } from '../helpers/render'
 
-import { PalCard, PalCardSkeleton } from '~/components/PalCard'
-import { SuitabilityTable } from '~/components/SuitabilityTable'
-import { DropsTable } from '~/components/DropsTable'
-import { EmptyState, PalNotFoundState } from '~/components/EmptyState'
-import { ErrorFallback } from '~/components/ErrorBoundary'
-import { TeamButton } from '~/components/TeamButton'
-import { PalGridStats } from '~/components/PalGrid'
-import { clearTeam, addPal } from '~/stores/team'
+import PalCard from '~/components/PalCard.vue'
+import { PalCardSkeleton } from '~/components/PalCard'
+import TypeBadge from '~/components/TypeBadge.vue'
+import { PalGridStats } from '~/components/PalGridStats'
+import SuitabilityTable from '~/components/SuitabilityTable.vue'
+import DropsTable from '~/components/DropsTable.vue'
+import EmptyState from '~/components/EmptyState.vue'
+import PalNotFoundState from '~/components/PalNotFoundState.vue'
+import ErrorFallback from '~/components/ErrorFallback.vue'
+import TeamButton from '~/components/TeamButton.vue'
+
 import {
   MOCK_LAMBALL,
-  MOCK_PENGULLET,
   MOCK_SUITABILITY,
   MOCK_DROPS,
 } from '../helpers/fixtures'
+import { addPal, clearTeam } from '~/stores/team'
 
-/**
- * Helper to wrap components that need Router context in a minimal provider.
- */
-async function renderWithRouter(ui: React.ReactElement) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
-
-  const rootRoute = createRootRoute({
-    component: () => (
-      <Suspense fallback={<div>Loading...</div>}>
-        <Outlet />
-      </Suspense>
-    ),
-  })
-
-  const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/',
-    component: () => ui,
-  })
-
-  const catchAll = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '$',
-    component: () => <div />,
-  })
-
-  const routeTree = rootRoute.addChildren([indexRoute, catchAll])
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: ['/'] }),
-  })
-
-  const screen = await render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  )
-
-  return screen
-}
-
-describe('Visual Snapshots', () => {
+describe('Visual Snapshot Tests', () => {
   beforeEach(() => {
     clearTeam()
   })
 
-  describe('PalCard', () => {
-    it('should match snapshot for single-type Pal', async () => {
-      const screen = await renderWithRouter(<PalCard pal={MOCK_LAMBALL} />)
+  describe('TypeBadge', () => {
+    it('should match snapshot for Fire type', async () => {
+      const screen = render(TypeBadge, { props: { type: 'Fire', size: 'sm' } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
 
-    it('should match snapshot for dual-type Pal', async () => {
-      const screen = await renderWithRouter(<PalCard pal={MOCK_PENGULLET} />)
+    it('should match snapshot for Water type (md)', async () => {
+      const screen = render(TypeBadge, { props: { type: 'Water', size: 'md' } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('PalCardSkeleton', () => {
     it('should match snapshot', async () => {
-      const screen = await render(<PalCardSkeleton />)
+      const screen = render(PalCardSkeleton)
+      expect(screen.container.innerHTML).toMatchSnapshot()
+    })
+  })
+
+  describe('PalCard', () => {
+    it('should match snapshot', async () => {
+      const { screen } = await renderWithProviders(PalCard, {
+        props: { pal: MOCK_LAMBALL },
+      })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('SuitabilityTable', () => {
-    it('should match snapshot with sample data', async () => {
-      const screen = await render(<SuitabilityTable data={MOCK_SUITABILITY} />)
+    it('should match snapshot with data', async () => {
+      const screen = render(SuitabilityTable, { props: { data: MOCK_SUITABILITY } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
 
-    it('should match snapshot for empty state', async () => {
-      const screen = await render(<SuitabilityTable data={[]} />)
+    it('should match snapshot when empty', async () => {
+      const screen = render(SuitabilityTable, { props: { data: [] } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('DropsTable', () => {
-    it('should match snapshot with sample data', async () => {
-      const screen = await render(<DropsTable data={MOCK_DROPS} />)
+    it('should match snapshot with data', async () => {
+      const screen = render(DropsTable, { props: { data: MOCK_DROPS } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
 
-    it('should match snapshot for empty state', async () => {
-      const screen = await render(<DropsTable data={[]} />)
+    it('should match snapshot when empty', async () => {
+      const screen = render(DropsTable, { props: { data: [] } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('EmptyState', () => {
     it('should match snapshot with defaults', async () => {
-      const screen = await renderWithRouter(<EmptyState />)
+      const { screen } = await renderWithProviders(EmptyState)
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('PalNotFoundState', () => {
     it('should match snapshot', async () => {
-      const screen = await renderWithRouter(<PalNotFoundState palId="999" />)
+      const { screen } = await renderWithProviders(PalNotFoundState, {
+        props: { palId: '999' },
+      })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('ErrorFallback', () => {
     it('should match snapshot with error', async () => {
-      const screen = await renderWithRouter(
-        <ErrorFallback error={new Error('Something broke')} />
-      )
+      const { screen } = await renderWithProviders(ErrorFallback, {
+        props: { error: new Error('Something broke') },
+      })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
 
     it('should match snapshot with reset callback', async () => {
-      const screen = await renderWithRouter(
-        <ErrorFallback
-          error={new Error('Something broke')}
-          resetErrorBoundary={() => {}}
-        />
-      )
+      const { screen } = await renderWithProviders(ErrorFallback, {
+        props: {
+          error: new Error('Something broke'),
+          resetErrorBoundary: () => {},
+        },
+      })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('TeamButton', () => {
     it('should match snapshot in "add" state', async () => {
-      const screen = await renderWithRouter(
-        <TeamButton pal={MOCK_LAMBALL} />
-      )
+      const screen = render(TeamButton, { props: { pal: MOCK_LAMBALL } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
 
     it('should match snapshot in "remove" state', async () => {
       addPal(MOCK_LAMBALL)
-      const screen = await renderWithRouter(
-        <TeamButton pal={MOCK_LAMBALL} />
-      )
+      const screen = render(TeamButton, { props: { pal: MOCK_LAMBALL } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
   describe('PalGridStats', () => {
     it('should match snapshot', async () => {
-      const screen = await render(<PalGridStats total={111} visible={20} />)
+      const screen = render(PalGridStats, { props: { total: 111, visible: 20 } })
       expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })

@@ -1,4 +1,4 @@
-import 'vitest-browser-react'
+import 'vitest-browser-vue'
 import '~/styles/globals.css'
 import { afterEach, beforeEach } from 'vitest'
 

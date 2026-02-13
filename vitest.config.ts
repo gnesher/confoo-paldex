@@ -1,9 +1,10 @@
 import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import { playwright } from '@vitest/browser-playwright'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [vue(), vueJsx()],
   test: {
     globals: true,
     setupFiles: ['./tests/setup.browser.ts'],
