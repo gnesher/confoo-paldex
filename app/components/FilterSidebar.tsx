@@ -21,27 +21,17 @@ function buildSearchUpdate(
   updates: Partial<SearchParams>,
   current: SearchParams,
 ) {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/16453a1a-f466-41b4-97e4-a64e28a7d718',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FilterSidebar.tsx:buildSearchUpdate',message:'buildSearchUpdate called',data:{updates,current},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
-
   const q = updates.q !== undefined ? updates.q : current.q
   const types = updates.types !== undefined ? updates.types : current.types
   const atkMin = updates.atkMin !== undefined ? updates.atkMin : current.atkMin
   const atkMax = updates.atkMax !== undefined ? updates.atkMax : current.atkMax
 
-  const result = {
+  return {
     q: q || undefined,
     types: types?.length ? types.join(',') : undefined,
     atkMin: atkMin && atkMin > 0 ? atkMin : undefined,
     atkMax: atkMax !== undefined && atkMax < MAX_ATTACK_STAT ? atkMax : undefined,
   }
-
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/16453a1a-f466-41b4-97e4-a64e28a7d718',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FilterSidebar.tsx:buildSearchUpdate',message:'buildSearchUpdate result',data:{merged:{q,types,atkMin,atkMax},result},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
-  // #endregion
-
-  return result
 }
 
 export function FilterSidebar({ initialValues }: FilterSidebarProps) {
@@ -52,41 +42,23 @@ export function FilterSidebar({ initialValues }: FilterSidebarProps) {
   const initialValuesRef = useRef(initialValues)
   initialValuesRef.current = initialValues
 
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/16453a1a-f466-41b4-97e4-a64e28a7d718',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FilterSidebar.tsx:render',message:'FilterSidebar rendering',data:{initialValues},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-  // #endregion
-
   const updateSearch = useCallback(
     (updates: Partial<SearchParams>) => {
-      const current = initialValuesRef.current
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/16453a1a-f466-41b4-97e4-a64e28a7d718',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FilterSidebar.tsx:updateSearch',message:'updateSearch called',data:{updates,initialValues_in_closure:current},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
       navigate({
         to: '/',
-        search: buildSearchUpdate(updates, current),
+        search: buildSearchUpdate(updates, initialValuesRef.current),
       })
     },
     [navigate],
   )
 
   const debouncedSearch = useDebouncedCallback(
-    (q: string) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/16453a1a-f466-41b4-97e4-a64e28a7d718',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FilterSidebar.tsx:debouncedSearch',message:'debouncedSearch firing',data:{q},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-      updateSearch({ q })
-    },
+    (q: string) => updateSearch({ q }),
     { wait: 300 },
   )
 
   const debouncedAttackChange = useDebouncedCallback(
-    (min: number, max: number) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/16453a1a-f466-41b4-97e4-a64e28a7d718',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'FilterSidebar.tsx:debouncedAttackChange',message:'debouncedAttackChange firing',data:{min,max},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-      updateSearch({ atkMin: min, atkMax: max })
-    },
+    (min: number, max: number) => updateSearch({ atkMin: min, atkMax: max }),
     { wait: 300 },
   )
 
