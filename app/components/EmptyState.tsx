@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { LinkButton } from './LinkButton'
 
 interface EmptyStateProps {
   title?: string
@@ -19,13 +19,9 @@ export function EmptyState({
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-sm mb-4">{message}</p>
       {showClearButton && (
-        <Link
-          to="/"
-          search={{}}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-        >
+        <LinkButton to="/" search={{}}>
           Clear all filters
-        </Link>
+        </LinkButton>
       )}
     </div>
   )
@@ -37,12 +33,7 @@ export function NotFoundState({ message = 'The page you are looking for does not
       <span className="text-6xl mb-4">😕</span>
       <h3 className="text-xl font-semibold mb-2">Page Not Found</h3>
       <p className="text-sm mb-4">{message}</p>
-      <Link
-        to="/"
-        className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-      >
-        Go to Home
-      </Link>
+      <LinkButton to="/">Go to Home</LinkButton>
     </div>
   )
 }
@@ -53,14 +44,9 @@ export function PalNotFoundState({ palId }: { palId: string }) {
       <span className="text-6xl mb-4">🎮</span>
       <h3 className="text-xl font-semibold mb-2">Pal Not Found</h3>
       <p className="text-sm mb-4">
-        No Pal with ID "{palId}" exists in the Paldex.
+        No Pal with ID &quot;{palId}&quot; exists in the Paldex.
       </p>
-      <Link
-        to="/"
-        className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-      >
-        Browse All Pals
-      </Link>
+      <LinkButton to="/">Browse All Pals</LinkButton>
     </div>
   )
 }

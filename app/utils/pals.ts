@@ -1,11 +1,12 @@
 import { z } from 'zod'
 import type { Pal } from '~/schemas/pal'
+import { MAX_ATTACK_STAT } from '~/schemas/pal'
 
 export const GetPalsParamsSchema = z.object({
   search: z.string().optional(),
   types: z.array(z.string()).optional(),
-  minAttack: z.number().min(0).max(200).optional(),
-  maxAttack: z.number().min(0).max(200).optional(),
+  minAttack: z.number().min(0).max(MAX_ATTACK_STAT).optional(),
+  maxAttack: z.number().min(0).max(MAX_ATTACK_STAT).optional(),
 })
 
 export type GetPalsParams = z.infer<typeof GetPalsParamsSchema>

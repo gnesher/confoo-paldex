@@ -1,42 +1,13 @@
 import { createRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
-import { z } from 'zod'
 import { Route as rootRoute } from './__root'
-import { getPals } from '~/utils/pals'
+import { palListQueryOptions } from '~/utils/queries'
+import { searchParamsSchema, hasActiveFilters, type SearchParams } from '~/schemas/search'
 import { PalGrid } from '~/components/PalGrid'
 import { PalCardSkeleton } from '~/components/PalCard'
 import { FilterSidebar } from '~/components/FilterSidebar'
-
-const searchParamsSchema = z.object({
-  q: z.string().optional(),
-  // Accept both string (from URL) and string[] (from router state) so
-  // memory-history re-validation doesn't break.
-  types: z.preprocess(
-    (val) => (Array.isArray(val) ? val.join(',') : val),
-    z
-      .string()
-      .optional()
-      .transform((val) => (val ? val.split(',').filter(Boolean) : undefined)),
-  ),
-  atkMin: z.coerce.number().min(0).max(200).optional().catch(undefined),
-  atkMax: z.coerce.number().min(0).max(200).optional().catch(undefined),
-})
-
-type SearchParams = z.infer<typeof searchParamsSchema>
-
-function palsQueryOptions(params: SearchParams) {
-  return {
-    queryKey: ['pals', params] as const,
-    queryFn: () =>
-      getPals({
-        search: params.q,
-        types: params.types,
-        minAttack: params.atkMin,
-        maxAttack: params.atkMax,
-      }),
-  }
-}
+import { MAX_ATTACK_STAT } from '~/schemas/pal'
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -77,19 +48,13 @@ function HomePage() {
 }
 
 function ActiveFilters({ search }: { search: SearchParams }) {
-  const hasFilters =
-    search.q ||
-    search.types?.length ||
-    search.atkMin !== undefined ||
-    (search.atkMax !== undefined && search.atkMax < 200)
-
-  if (!hasFilters) return null
+  if (!hasActiveFilters(search)) return null
 
   return (
     <div className="flex flex-wrap gap-2 mt-3">
       {search.q && (
         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
-          Search: "{search.q}"
+          Search: &quot;{search.q}&quot;
         </span>
       )}
       {search.types?.map((type) => (
@@ -100,9 +65,10 @@ function ActiveFilters({ search }: { search: SearchParams }) {
           {type}
         </span>
       ))}
-      {(search.atkMin !== undefined || (search.atkMax !== undefined && search.atkMax < 200)) && (
+      {(search.atkMin !== undefined ||
+        (search.atkMax !== undefined && search.atkMax < MAX_ATTACK_STAT)) && (
         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
-          Attack: {search.atkMin ?? 0} - {search.atkMax ?? 200}
+          Attack: {search.atkMin ?? 0} - {search.atkMax ?? MAX_ATTACK_STAT}
         </span>
       )}
     </div>
@@ -110,7 +76,7 @@ function ActiveFilters({ search }: { search: SearchParams }) {
 }
 
 function PalGridWithData({ search }: { search: SearchParams }) {
-  const { data: pals } = useSuspenseQuery(palsQueryOptions(search))
+  const { data: pals } = useSuspenseQuery(palListQueryOptions(search))
 
   return (
     <div>

@@ -1,5 +1,8 @@
 import { z } from 'zod'
 
+/** Upper bound for the attack stat used across filters, schemas, and UI. */
+export const MAX_ATTACK_STAT = 200
+
 export const SuitabilitySchema = z.object({
   workType: z.enum([
     'Kindling',
@@ -26,7 +29,7 @@ export const DropSchema = z.object({
 
 export const StatsSchema = z.object({
   hp: z.number().int().min(0),
-  attack: z.number().int().min(0).max(200),
+  attack: z.number().int().min(0).max(MAX_ATTACK_STAT),
   defense: z.number().int().min(0),
   speed: z.number().int().min(0).optional(),
   stamina: z.number().int().min(0).optional(),

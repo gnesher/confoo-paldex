@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import { Link } from '@tanstack/react-router'
+import { LinkButton } from './LinkButton'
 
 interface Props {
   children: ReactNode
@@ -32,27 +32,12 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-          <span className="text-6xl mb-4">💥</span>
-          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
-          <p className="text-sm mb-4 text-center max-w-md">
-            {this.state.error?.message || 'An unexpected error occurred.'}
-          </p>
-          <div className="flex gap-4">
-            <button
-              onClick={() => this.setState({ hasError: false, error: undefined })}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md text-sm hover:bg-gray-300 transition-colors"
-            >
-              Try again
-            </button>
-            <Link
-              to="/"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-            >
-              Go to Home
-            </Link>
-          </div>
-        </div>
+        <ErrorFallback
+          error={this.state.error ?? new Error('An unexpected error occurred.')}
+          resetErrorBoundary={() =>
+            this.setState({ hasError: false, error: undefined })
+          }
+        />
       )
     }
 
@@ -81,12 +66,7 @@ export function ErrorFallback({
             Try again
           </button>
         )}
-        <Link
-          to="/"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-        >
-          Go to Home
-        </Link>
+        <LinkButton to="/">Go to Home</LinkButton>
       </div>
     </div>
   )

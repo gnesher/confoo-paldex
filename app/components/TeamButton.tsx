@@ -1,5 +1,4 @@
-import { useStore } from '@tanstack/react-store'
-import { teamStore, togglePal } from '~/stores/team'
+import { togglePal, useIsInTeam } from '~/stores/team'
 import type { Pal } from '~/schemas/pal'
 
 interface TeamButtonProps {
@@ -8,27 +7,21 @@ interface TeamButtonProps {
   className?: string
 }
 
+const SIZE_CLASSES = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-6 py-3 text-lg',
+} as const
+
 export function TeamButton({ pal, size = 'md', className = '' }: TeamButtonProps) {
-  const isInTeam = useStore(teamStore, (state) =>
-    state.pals.some((p) => p.id === pal.id)
-  )
-
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  }
-
-  const handleClick = () => {
-    togglePal(pal)
-  }
+  const isInTeam = useIsInTeam(pal.id)
 
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={() => togglePal(pal)}
       className={`
-        ${sizeClasses[size]}
+        ${SIZE_CLASSES[size]}
         font-semibold rounded-lg transition-all duration-200
         ${
           isInTeam
@@ -54,9 +47,7 @@ export function TeamButton({ pal, size = 'md', className = '' }: TeamButtonProps
 }
 
 export function TeamButtonCompact({ pal }: { pal: Pal }) {
-  const isInTeam = useStore(teamStore, (state) =>
-    state.pals.some((p) => p.id === pal.id)
-  )
+  const isInTeam = useIsInTeam(pal.id)
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation if inside a Link

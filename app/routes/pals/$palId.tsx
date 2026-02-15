@@ -2,20 +2,13 @@ import { createRoute, Link } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense, useEffect } from 'react'
 import { Route as rootRoute } from '../__root'
-import { getPalById } from '~/utils/pals'
+import { palDetailQueryOptions } from '~/utils/queries'
 import { SuitabilityTable } from '~/components/SuitabilityTable'
 import { DropsTable } from '~/components/DropsTable'
 import { TeamButton } from '~/components/TeamButton'
 import { PalNotFoundState } from '~/components/EmptyState'
 import { TypeBadge } from '~/components/TypeBadge'
 import { PalImage } from '~/components/PalImage'
-
-function palQueryOptions(id: string) {
-  return {
-    queryKey: ['pal', id] as const,
-    queryFn: () => getPalById(id),
-  }
-}
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -48,7 +41,7 @@ function PalDetailPage() {
 }
 
 function PalDetailContent({ palId }: { palId: string }) {
-  const { data: pal } = useSuspenseQuery(palQueryOptions(palId))
+  const { data: pal } = useSuspenseQuery(palDetailQueryOptions(palId))
 
   useEffect(() => {
     if (pal) {

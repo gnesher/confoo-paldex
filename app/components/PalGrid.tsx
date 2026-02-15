@@ -2,6 +2,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import type { Pal } from '~/schemas/pal'
 import { PalCard, PalCardSkeleton } from './PalCard'
+import { EmptyState } from './EmptyState'
 
 interface PalGridProps {
   pals: Pal[]
@@ -76,13 +77,7 @@ export function PalGrid({ pals, isLoading = false }: PalGridProps) {
   }
 
   if (pals.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-        <span className="text-6xl mb-4">🔍</span>
-        <h3 className="text-xl font-semibold mb-2">No Pals found</h3>
-        <p className="text-sm">Try adjusting your search filters</p>
-      </div>
-    )
+    return <EmptyState showClearButton={false} />
   }
 
   return (

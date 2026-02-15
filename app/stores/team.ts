@@ -1,4 +1,5 @@
 import { Store } from '@tanstack/store'
+import { useStore } from '@tanstack/react-store'
 import type { Pal } from '~/schemas/pal'
 import {
   TEAM_STORAGE_KEY,
@@ -93,4 +94,9 @@ export function getTeamSize(): number {
 
 export function clearTeam(): void {
   teamStore.setState({ pals: [] })
+}
+
+/** Reactive hook — returns true when the given Pal is on the team. */
+export function useIsInTeam(palId: string): boolean {
+  return useStore(teamStore, (state) => state.pals.some((p) => p.id === palId))
 }

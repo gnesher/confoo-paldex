@@ -96,7 +96,7 @@ describe('FilterSidebar', () => {
     const { screen } = await renderWithProviders(
       <FilterSidebar initialValues={{ types: ['Fire', 'Water'] }} />
     )
-    await expect.element(screen.getByText('2 type(s) selectead')).toBeInTheDocument()
+    await expect.element(screen.getByText('2 type(s) selected')).toBeInTheDocument()
   })
 
   it('should display selected types as removable badges', async () => {

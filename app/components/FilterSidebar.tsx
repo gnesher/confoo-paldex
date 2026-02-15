@@ -2,51 +2,59 @@ import { useDebouncedCallback } from '@tanstack/react-pacer'
 import { useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { PalType } from '~/schemas/pal'
+import { MAX_ATTACK_STAT } from '~/schemas/pal'
+import { hasActiveFilters, type SearchParams } from '~/schemas/search'
 
 const PAL_TYPES: PalType[] = [
-  'Neutral', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Ground', 'Dark', 'Dragon'
+  'Neutral', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Ground', 'Dark', 'Dragon',
 ]
-
-interface SearchParams {
-  q?: string
-  types?: string[]
-  atkMin?: number
-  atkMax?: number
-}
 
 interface FilterSidebarProps {
   initialValues: SearchParams
 }
 
+/**
+ * Merge a partial update into the current filter values, converting each
+ * field into its URL-friendly representation (undefined = omit from URL).
+ */
+function buildSearchUpdate(
+  updates: Partial<SearchParams>,
+  current: SearchParams,
+) {
+  const q = updates.q !== undefined ? updates.q : current.q
+  const types = updates.types !== undefined ? updates.types : current.types
+  const atkMin = updates.atkMin !== undefined ? updates.atkMin : current.atkMin
+  const atkMax = updates.atkMax !== undefined ? updates.atkMax : current.atkMax
+
+  return {
+    q: q || undefined,
+    types: types?.length ? types.join(',') : undefined,
+    atkMin: atkMin && atkMin > 0 ? atkMin : undefined,
+    atkMax: atkMax !== undefined && atkMax < MAX_ATTACK_STAT ? atkMax : undefined,
+  }
+}
+
 export function FilterSidebar({ initialValues }: FilterSidebarProps) {
   const navigate = useNavigate()
 
-  const updateSearch = useCallback((updates: Partial<SearchParams>) => {
-    navigate({
-      to: '/',
-      search: {
-        q: updates.q !== undefined ? (updates.q || undefined) : initialValues.q,
-        types: updates.types !== undefined 
-          ? (updates.types?.length ? updates.types.join(',') : undefined)
-          : (initialValues.types?.length ? initialValues.types.join(',') : undefined),
-        atkMin: updates.atkMin !== undefined
-          ? (updates.atkMin > 0 ? updates.atkMin : undefined)
-          : initialValues.atkMin,
-        atkMax: updates.atkMax !== undefined
-          ? (updates.atkMax < 200 ? updates.atkMax : undefined)
-          : initialValues.atkMax,
-      },
-    })
-  }, [navigate, initialValues])
+  const updateSearch = useCallback(
+    (updates: Partial<SearchParams>) => {
+      navigate({
+        to: '/',
+        search: buildSearchUpdate(updates, initialValues),
+      })
+    },
+    [navigate, initialValues],
+  )
 
   const debouncedSearch = useDebouncedCallback(
     (q: string) => updateSearch({ q }),
-    { wait: 300 }
+    { wait: 300 },
   )
 
   const debouncedAttackChange = useDebouncedCallback(
     (min: number, max: number) => updateSearch({ atkMin: min, atkMax: max }),
-    { wait: 300 }
+    { wait: 300 },
   )
 
   return (
@@ -66,15 +74,11 @@ export function FilterSidebar({ initialValues }: FilterSidebarProps) {
 
         <AttackRangeSlider
           min={initialValues.atkMin ?? 0}
-          max={initialValues.atkMax ?? 200}
+          max={initialValues.atkMax ?? MAX_ATTACK_STAT}
           onChange={debouncedAttackChange}
         />
 
-        <ClearFiltersButton
-          hasFilters={
-            !!(initialValues.q || initialValues.types?.length || initialValues.atkMin || (initialValues.atkMax !== undefined && initialValues.atkMax < 200))
-          }
-        />
+        <ClearFiltersButton hasFilters={hasActiveFilters(initialValues)} />
       </div>
     </aside>
   )
@@ -245,20 +249,20 @@ function AttackRangeSlider({
         <span>{minValue}</span>
         <span>{maxValue}</span>
       </div>
-      
+
       <div className="relative h-2">
         <div className="absolute w-full h-2 bg-gray-200 rounded-full" />
         <div
           className="absolute h-2 bg-blue-500 rounded-full"
           style={{
-            left: `${(minValue / 200) * 100}%`,
-            width: `${((maxValue - minValue) / 200) * 100}%`,
+            left: `${(minValue / MAX_ATTACK_STAT) * 100}%`,
+            width: `${((maxValue - minValue) / MAX_ATTACK_STAT) * 100}%`,
           }}
         />
         <input
           type="range"
           min={0}
-          max={200}
+          max={MAX_ATTACK_STAT}
           step={5}
           value={minValue}
           onChange={handleMinChange}
@@ -267,17 +271,17 @@ function AttackRangeSlider({
         <input
           type="range"
           min={0}
-          max={200}
+          max={MAX_ATTACK_STAT}
           step={5}
           value={maxValue}
           onChange={handleMaxChange}
           className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer"
         />
       </div>
-      
+
       <div className="flex justify-between text-xs text-gray-400 mt-1">
         <span>0</span>
-        <span>200</span>
+        <span>{MAX_ATTACK_STAT}</span>
       </div>
     </div>
   )
