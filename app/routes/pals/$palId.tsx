@@ -2,23 +2,13 @@ import { computed, defineComponent, h, watchEffect } from 'vue'
 import { createRoute, Link, useParams } from '@tanstack/vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { Route as rootRoute } from '../__root'
-import { getPalById } from '~/utils/pals'
+import { palDetailQueryOptions } from '~/utils/queries'
 import SuitabilityTable from '~/components/SuitabilityTable.vue'
 import DropsTable from '~/components/DropsTable.vue'
 import TeamButton from '~/components/TeamButton.vue'
 import { PalNotFoundState } from '~/components/EmptyState'
 import TypeBadge from '~/components/TypeBadge.vue'
 import PalImage from '~/components/PalImage.vue'
-
-/**
- * Query options factory for getPalById
- */
-function palQueryOptions(id: string) {
-  return {
-    queryKey: ['pal', id] as const,
-    queryFn: () => getPalById(id),
-  }
-}
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -59,7 +49,7 @@ const PalDetailContent = defineComponent({
     palId: { type: String, required: true },
   },
   setup(props) {
-    const { data: pal, isLoading } = useQuery(computed(() => palQueryOptions(props.palId)))
+    const { data: pal, isLoading } = useQuery(computed(() => palDetailQueryOptions(props.palId)))
 
     // Update document title
     watchEffect(() => {

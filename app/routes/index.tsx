@@ -1,44 +1,13 @@
 import { computed, defineComponent, h } from 'vue'
 import { createRoute, useSearch } from '@tanstack/vue-router'
 import { useQuery } from '@tanstack/vue-query'
-import { z } from 'zod'
 import { Route as rootRoute } from './__root'
-import { getPals } from '~/utils/pals'
+import { palListQueryOptions } from '~/utils/queries'
+import { searchParamsSchema, hasActiveFilters, type SearchParams } from '~/schemas/search'
+import { MAX_ATTACK_STAT } from '~/schemas/pal'
 import PalGrid from '~/components/PalGrid.vue'
 import { PalCardSkeleton } from '~/components/PalCard'
 import FilterSidebar from '~/components/FilterSidebar.vue'
-
-/**
- * Search params schema for URL validation
- */
-const searchParamsSchema = z.object({
-  q: z.string().optional(),
-  types: z.preprocess(
-    (val) => (Array.isArray(val) ? val.join(',') : val),
-    z
-      .string()
-      .optional()
-      .transform((val) => (val ? val.split(',').filter(Boolean) : undefined)),
-  ),
-  atkMin: z.coerce.number().min(0).max(200).optional().catch(undefined),
-  atkMax: z.coerce.number().min(0).max(200).optional().catch(undefined),
-})
-
-type SearchParams = z.infer<typeof searchParamsSchema>
-
-// Query options factory for getPals
-function palsQueryOptions(params: SearchParams) {
-  return {
-    queryKey: ['pals', params] as const,
-    queryFn: () =>
-      getPals({
-        search: params.q,
-        types: params.types,
-        minAttack: params.atkMin,
-        maxAttack: params.atkMax,
-      }),
-  }
-}
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -74,9 +43,6 @@ export const Route = createRoute({
   }),
 })
 
-/**
- * Display active filters as badges
- */
 const ActiveFilters = defineComponent({
   name: 'ActiveFilters',
   props: {
@@ -85,13 +51,7 @@ const ActiveFilters = defineComponent({
   setup(props) {
     return () => {
       const search = props.search
-      const hasFilters =
-        search.q ||
-        search.types?.length ||
-        search.atkMin !== undefined ||
-        (search.atkMax !== undefined && search.atkMax < 200)
-
-      if (!hasFilters) return null
+      if (!hasActiveFilters(search)) return null
 
       const badges: ReturnType<typeof h>[] = []
 
@@ -113,10 +73,10 @@ const ActiveFilters = defineComponent({
         }
       }
 
-      if (search.atkMin !== undefined || (search.atkMax !== undefined && search.atkMax < 200)) {
+      if (search.atkMin !== undefined || (search.atkMax !== undefined && search.atkMax < MAX_ATTACK_STAT)) {
         badges.push(
           h('span', { class: 'inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800' },
-            `Attack: ${search.atkMin ?? 0} - ${search.atkMax ?? 200}`)
+            `Attack: ${search.atkMin ?? 0} - ${search.atkMax ?? MAX_ATTACK_STAT}`)
         )
       }
 
@@ -125,16 +85,13 @@ const ActiveFilters = defineComponent({
   },
 })
 
-/**
- * Component that fetches and displays Pal data
- */
 const PalGridWithData = defineComponent({
   name: 'PalGridWithData',
   props: {
     search: { type: Object as () => SearchParams, required: true },
   },
   setup(props) {
-    const { data: pals, isLoading } = useQuery(computed(() => palsQueryOptions(props.search)))
+    const { data: pals, isLoading } = useQuery(computed(() => palListQueryOptions(props.search)))
 
     return () => {
       if (isLoading.value) {
@@ -150,9 +107,6 @@ const PalGridWithData = defineComponent({
   },
 })
 
-/**
- * Loading skeleton
- */
 const LoadingSkeleton = defineComponent({
   name: 'LoadingSkeleton',
   setup() {

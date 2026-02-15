@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 import { useNavigate } from '@tanstack/vue-router'
 import { useDebouncedCallback } from '~/composables/useDebouncedCallback'
 import type { PalType } from '~/schemas/pal'
+import { MAX_ATTACK_STAT } from '~/schemas/pal'
+import { hasActiveFilters, type SearchParams } from '~/schemas/search'
 
 const PAL_TYPES: PalType[] = [
   'Neutral', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Ground', 'Dark', 'Dragon',
 ]
-
-interface SearchParams {
-  q?: string
-  types?: string[]
-  atkMin?: number
-  atkMax?: number
-}
 
 const props = defineProps<{
   initialValues: SearchParams
@@ -21,21 +16,31 @@ const props = defineProps<{
 
 const navigate = useNavigate()
 
+/**
+ * Merge a partial update into the current filter values, converting each
+ * field into its URL-friendly representation (undefined = omit from URL).
+ */
+function buildSearchUpdate(
+  updates: Partial<SearchParams>,
+  current: SearchParams,
+) {
+  const q = updates.q !== undefined ? updates.q : current.q
+  const types = updates.types !== undefined ? updates.types : current.types
+  const atkMin = updates.atkMin !== undefined ? updates.atkMin : current.atkMin
+  const atkMax = updates.atkMax !== undefined ? updates.atkMax : current.atkMax
+
+  return {
+    q: q || undefined,
+    types: types?.length ? types.join(',') : undefined,
+    atkMin: atkMin && atkMin > 0 ? atkMin : undefined,
+    atkMax: atkMax !== undefined && atkMax < MAX_ATTACK_STAT ? atkMax : undefined,
+  }
+}
+
 function updateSearch(updates: Partial<SearchParams>) {
   navigate({
     to: '/',
-    search: {
-      q: updates.q !== undefined ? (updates.q || undefined) : props.initialValues.q,
-      types: updates.types !== undefined
-        ? (updates.types?.length ? updates.types.join(',') : undefined)
-        : (props.initialValues.types?.length ? props.initialValues.types.join(',') : undefined),
-      atkMin: updates.atkMin !== undefined
-        ? (updates.atkMin > 0 ? updates.atkMin : undefined)
-        : props.initialValues.atkMin,
-      atkMax: updates.atkMax !== undefined
-        ? (updates.atkMax < 200 ? updates.atkMax : undefined)
-        : props.initialValues.atkMax,
-    },
+    search: buildSearchUpdate(updates, props.initialValues),
   })
 }
 
@@ -98,11 +103,11 @@ onUnmounted(() => {
 
 // --- Attack Range ---
 const minValue = ref(props.initialValues.atkMin ?? 0)
-const maxValue = ref(props.initialValues.atkMax ?? 200)
+const maxValue = ref(props.initialValues.atkMax ?? MAX_ATTACK_STAT)
 
 watch(() => [props.initialValues.atkMin, props.initialValues.atkMax], ([min, max]) => {
   minValue.value = min ?? 0
-  maxValue.value = max ?? 200
+  maxValue.value = max ?? MAX_ATTACK_STAT
 })
 
 function onMinChange(e: Event) {
@@ -122,9 +127,9 @@ function onMaxChange(e: Event) {
 }
 
 // --- Clear Filters ---
-const hasFilters = ref(false)
+const hasFiltersActive = ref(false)
 watch(() => props.initialValues, (v) => {
-  hasFilters.value = !!(v.q || v.types?.length || v.atkMin || (v.atkMax !== undefined && v.atkMax < 200))
+  hasFiltersActive.value = hasActiveFilters(v)
 }, { immediate: true, deep: true })
 
 function clearFilters() {
@@ -206,14 +211,14 @@ function clearFilters() {
           <div
             class="absolute h-2 bg-blue-500 rounded-full"
             :style="{
-              left: `${(minValue / 200) * 100}%`,
-              width: `${((maxValue - minValue) / 200) * 100}%`,
+              left: `${(minValue / MAX_ATTACK_STAT) * 100}%`,
+              width: `${((maxValue - minValue) / MAX_ATTACK_STAT) * 100}%`,
             }"
           />
           <input
             type="range"
             :min="0"
-            :max="200"
+            :max="MAX_ATTACK_STAT"
             :step="5"
             :value="minValue"
             @input="onMinChange"
@@ -222,7 +227,7 @@ function clearFilters() {
           <input
             type="range"
             :min="0"
-            :max="200"
+            :max="MAX_ATTACK_STAT"
             :step="5"
             :value="maxValue"
             @input="onMaxChange"
@@ -232,13 +237,13 @@ function clearFilters() {
 
         <div class="flex justify-between text-xs text-gray-400 mt-1">
           <span>0</span>
-          <span>200</span>
+          <span>{{ MAX_ATTACK_STAT }}</span>
         </div>
       </div>
 
       <!-- Clear Filters -->
       <button
-        v-if="hasFilters"
+        v-if="hasFiltersActive"
         type="button"
         @click="clearFilters"
         class="w-full px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
