@@ -75,14 +75,10 @@ describe('Team Management Flow', () => {
     const { screen } = await renderTeamFlow()
 
     await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
-
-    // Initially no bottom bar
     await expect.element(screen.getByText('My Team')).not.toBeInTheDocument()
 
-    // Add Lamball to team
     await screen.getByText('Add to Team').first().click()
 
-    // Bottom bar should appear with count
     await expect.element(screen.getByText('My Team')).toBeInTheDocument()
     await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
   })
@@ -92,13 +88,9 @@ describe('Team Management Flow', () => {
 
     await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
-    // Add Lamball
     await screen.getByText('Add to Team').first().click()
-
-    // Expand
     await screen.getByText('My Team').click()
 
-    // Should see Lamball in the expanded bar
     await expect.element(screen.getByText('Lamball')).toBeInTheDocument()
   })
 
@@ -107,9 +99,7 @@ describe('Team Management Flow', () => {
 
     await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
-    // Add Lamball
     await screen.getByText('Add to Team').first().click()
-    // Add Foxparks (it's the remaining "Add to Team" button)
     await screen.getByText('Add to Team').first().click()
 
     await expect.element(screen.getByText('2 Pals')).toBeInTheDocument()
@@ -120,16 +110,10 @@ describe('Team Management Flow', () => {
 
     await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
-    // Add Lamball
     await screen.getByText('Add to Team').first().click()
-
-    // Expand
     await screen.getByText('My Team').click()
-
-    // Remove via the remove button in the bar
     await screen.getByTitle('Remove from team').click()
 
-    // Team should be empty
     expect(teamStore.state.pals).toHaveLength(0)
   })
 
@@ -138,16 +122,11 @@ describe('Team Management Flow', () => {
 
     await expect.element(screen.getByText('Add to Team').first()).toBeInTheDocument()
 
-    // Add Lamball
     await screen.getByText('Add to Team').first().click()
-
-    // Button should now say "Remove from Team"
     await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
 
-    // Click to remove
     await screen.getByText('Remove from Team').click()
 
-    // Should be back to "Add to Team" (both buttons)
     const addButtons = await screen.getByText('Add to Team').all()
     expect(addButtons).toHaveLength(2)
   })

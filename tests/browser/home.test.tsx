@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderApp, MOCK_PALS, filterPals, DATA_TIMEOUT } from './helpers'
 
-// ---- mock the data layer (no real API / no artificial delay) ----
 vi.mock('~/utils/pals', () => ({
   getPals: vi.fn(),
   getPalById: vi.fn(),
@@ -16,8 +15,6 @@ beforeEach(() => {
   mockGetPals.mockImplementation(async (params) => filterPals(MOCK_PALS, params))
   mockGetPalById.mockImplementation(async (id) => MOCK_PALS.find((p) => p.id === id) ?? null)
 })
-
-// ---- tests ----
 
 describe('Home Page', () => {
   it('should display the page heading and description', async () => {
@@ -80,7 +77,6 @@ describe('Home Page', () => {
     await searchInput.clear()
     await searchInput.fill('fox')
 
-    // Debounce fires, navigation updates params, query re-runs with filter
     await expect.element(screen.getByText('Foxparks'), DATA_TIMEOUT).toBeInTheDocument()
     await expect.element(screen.getByText('1 Pals found')).toBeInTheDocument()
   })
@@ -114,7 +110,6 @@ describe('Home Page', () => {
       DATA_TIMEOUT
     ).toBeInTheDocument()
 
-    // Open type dropdown and select Fire
     await screen.getByText('Select types...').click()
     await screen.getByRole('checkbox', { name: /Fire/ }).click()
 

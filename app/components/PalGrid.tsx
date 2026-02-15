@@ -8,38 +8,24 @@ interface PalGridProps {
   isLoading?: boolean
 }
 
-/**
- * Calculate number of columns based on container width
- * Responsive: 2 cols on mobile, 3 on tablet, 4-5 on desktop
- */
 function calculateColumns(width: number): number {
-  if (width < 640) return 2   // sm
-  if (width < 1024) return 3  // md/lg
-  if (width < 1280) return 4  // lg
-  return 5                     // xl+
+  if (width < 640) return 2
+  if (width < 1024) return 3
+  if (width < 1280) return 4
+  return 5
 }
 
-/**
- * Virtualized grid of Pal cards
- * Uses TanStack Virtual for performance with 100+ items
- */
 export function PalGrid({ pals, isLoading = false }: PalGridProps) {
   const parentRef = useRef<HTMLDivElement>(null)
   const [columns, setColumns] = useState(4)
   const [containerWidth, setContainerWidth] = useState(800)
 
-  // Calculate number of rows based on items and columns
   const rowCount = Math.ceil(pals.length / columns)
-
-  // Gap between cards
   const gap = 20
-
-  // Calculate card dimensions based on container
   const cardWidth = Math.floor((containerWidth - (columns - 1) * gap) / columns)
-  // Card height: aspect-[4/3] image + ~80px content
+  // aspect-[4/3] image + ~90px content
   const cardHeight = Math.floor(cardWidth * 0.75) + 90
 
-  // Setup virtualizer for rows
   const virtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
@@ -47,7 +33,6 @@ export function PalGrid({ pals, isLoading = false }: PalGridProps) {
     overscan: 3,
   })
 
-  // Handle resize to update column count and container width
   const handleResize = useCallback(() => {
     if (parentRef.current) {
       const width = parentRef.current.clientWidth
@@ -56,7 +41,6 @@ export function PalGrid({ pals, isLoading = false }: PalGridProps) {
     }
   }, [])
 
-  // Setup resize observer
   useEffect(() => {
     const element = parentRef.current
     if (!element) return
@@ -74,12 +58,10 @@ export function PalGrid({ pals, isLoading = false }: PalGridProps) {
     }
   }, [handleResize])
 
-  // Recalculate virtualizer when dimensions change
   useEffect(() => {
     virtualizer.measure()
   }, [columns, containerWidth, virtualizer])
 
-  // Loading state
   if (isLoading) {
     return (
       <div 
@@ -93,7 +75,6 @@ export function PalGrid({ pals, isLoading = false }: PalGridProps) {
     )
   }
 
-  // Empty state
   if (pals.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -153,9 +134,6 @@ export function PalGrid({ pals, isLoading = false }: PalGridProps) {
   )
 }
 
-/**
- * Grid stats display for debugging/demo purposes
- */
 export function PalGridStats({
   total,
   visible,

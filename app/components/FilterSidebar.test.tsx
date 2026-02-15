@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FilterSidebar } from './FilterSidebar'
 import { renderWithProviders } from '../../tests/helpers/render'
 
-// Mock useNavigate to verify navigation calls
 const mockNavigate = vi.fn()
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
@@ -51,7 +50,6 @@ describe('FilterSidebar', () => {
     const input = screen.getByPlaceholder('Search Pals by name...')
     await input.fill('fox')
 
-    // Debounced at 300ms, wait for it
     await vi.waitFor(
       () => {
         expect(mockNavigate).toHaveBeenCalled()
@@ -73,7 +71,6 @@ describe('FilterSidebar', () => {
     )
     await screen.getByText('Select types...').click()
 
-    // All 9 types should appear as checkboxes
     await expect.element(screen.getByText('Fire')).toBeInTheDocument()
     await expect.element(screen.getByText('Water')).toBeInTheDocument()
     await expect.element(screen.getByText('Grass')).toBeInTheDocument()
@@ -87,10 +84,8 @@ describe('FilterSidebar', () => {
       <FilterSidebar initialValues={{}} />
     )
 
-    // Open dropdown
     await screen.getByText('Select types...').click()
 
-    // Check Fire
     const fireCheckbox = screen.getByRole('checkbox', { name: /fire/i })
     await fireCheckbox.click()
 
@@ -101,14 +96,13 @@ describe('FilterSidebar', () => {
     const { screen } = await renderWithProviders(
       <FilterSidebar initialValues={{ types: ['Fire', 'Water'] }} />
     )
-    await expect.element(screen.getByText('2 type(s) selected')).toBeInTheDocument()
+    await expect.element(screen.getByText('2 type(s) selectead')).toBeInTheDocument()
   })
 
   it('should display selected types as removable badges', async () => {
     const { screen } = await renderWithProviders(
       <FilterSidebar initialValues={{ types: ['Fire', 'Water'] }} />
     )
-    // Badges are rendered below the dropdown
     const fireBadges = await screen.getByText('Fire').all()
     expect(fireBadges.length).toBeGreaterThanOrEqual(1)
     const waterBadges = await screen.getByText('Water').all()

@@ -19,7 +19,6 @@ import { TeamButton } from '~/components/TeamButton'
 import { PalNotFoundState } from '~/components/EmptyState'
 import { PAL_TYPE_COLORS } from '~/schemas/pal'
 
-// Mock the pals data utility
 vi.mock('~/utils/pals', () => ({
   getPals: vi.fn().mockResolvedValue([]),
   getPalById: vi.fn(),
@@ -29,9 +28,6 @@ import { getPalById } from '~/utils/pals'
 
 const mockGetPalById = vi.mocked(getPalById)
 
-/**
- * Simplified detail page component that mirrors the real one.
- */
 function TestDetailPage({ palId }: { palId: string }) {
   return (
     <div className="min-h-screen bg-gray-50">

@@ -21,7 +21,6 @@ describe('DropsTable', () => {
   it('should render quantities with multiplication prefix', async () => {
     const { screen } = await renderSimple(<DropsTable data={MOCK_DROPS} />)
     await expect.element(screen.getByText('×2')).toBeInTheDocument()
-    // Two items with quantity 1
     const ones = await screen.getByText('×1').all()
     expect(ones).toHaveLength(2)
   })
@@ -34,7 +33,6 @@ describe('DropsTable', () => {
 
   it('should render a dash for undefined drop rate', async () => {
     const { screen } = await renderSimple(<DropsTable data={MOCK_DROPS} />)
-    // Rare Gem has no dropRate
     await expect.element(screen.getByText('—')).toBeInTheDocument()
   })
 

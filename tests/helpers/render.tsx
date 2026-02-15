@@ -10,12 +10,6 @@ import {
   Outlet,
 } from '@tanstack/react-router'
 
-/**
- * Create a fresh QueryClient configured for testing.
- * - No retries (tests should fail fast)
- * - No stale time caching
- * - No garbage collection during tests
- */
 function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -29,20 +23,10 @@ function createTestQueryClient() {
 }
 
 interface RenderWithProvidersOptions {
-  /** Initial URL path for the router, defaults to '/' */
   initialPath?: string
-  /** Provide a pre-configured QueryClient (otherwise a fresh one is created) */
   queryClient?: QueryClient
 }
 
-/**
- * Async render helper that wraps the component in:
- * 1. QueryClientProvider (fresh or provided)
- * 2. TanStack Router (memory history, catch-all route)
- * 3. Suspense boundary
- *
- * Returns vitest-browser-react screen (with locator methods) plus queryClient/router.
- */
 export async function renderWithProviders(
   ui: React.ReactElement,
   options: RenderWithProvidersOptions = {},
@@ -50,7 +34,6 @@ export async function renderWithProviders(
   const { initialPath = '/', queryClient } = options
   const testQueryClient = queryClient ?? createTestQueryClient()
 
-  // Build a minimal route tree that renders our test UI
   const rootRoute = createRootRoute({
     component: () => (
       <Suspense fallback={<div>Loading...</div>}>
@@ -65,7 +48,7 @@ export async function renderWithProviders(
     component: () => ui,
   })
 
-  // Catch-all route so any Link href doesn't cause a 404
+  // Catch-all so Link hrefs don't cause 404s
   const catchAllRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '$',
@@ -88,10 +71,6 @@ export async function renderWithProviders(
   return { screen, queryClient: testQueryClient, router }
 }
 
-/**
- * Simpler render that only wraps in QueryClientProvider (no router).
- * Useful for components that don't use Link/navigation.
- */
 export async function renderWithQuery(
   ui: React.ReactElement,
   options: Omit<RenderWithProvidersOptions, 'initialPath'> = {},
@@ -108,10 +87,6 @@ export async function renderWithQuery(
   return { screen, queryClient: testQueryClient }
 }
 
-/**
- * Minimal render with just Suspense (no router, no query client).
- * Useful for pure presentational components.
- */
 export async function renderSimple(ui: React.ReactElement) {
   const screen = await render(ui)
   return { screen }

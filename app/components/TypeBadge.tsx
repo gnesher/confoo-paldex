@@ -6,10 +6,6 @@ interface TypeBadgeProps {
   size?: 'sm' | 'md'
 }
 
-/**
- * Shared type badge component for displaying Pal element types.
- * Used in PalCard (sm) and detail page (md).
- */
 export function TypeBadge({ type, size = 'sm' }: TypeBadgeProps) {
   const colorClass = PAL_TYPE_COLORS[type]
   const sizeClasses = size === 'sm'

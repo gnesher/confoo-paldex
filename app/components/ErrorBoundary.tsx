@@ -11,9 +11,6 @@ interface State {
   error?: Error
 }
 
-/**
- * Error boundary component to catch and display errors gracefully
- */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
@@ -63,9 +60,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-/**
- * Functional error fallback component
- */
 export function ErrorFallback({
   error,
   resetErrorBoundary,

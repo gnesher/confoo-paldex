@@ -19,11 +19,8 @@ describe('SuitabilityTable', () => {
 
   it('should render work type icons', async () => {
     const { screen } = await renderSimple(<SuitabilityTable data={MOCK_SUITABILITY} />)
-    // Kindling icon is fire emoji
     await expect.element(screen.getByText('🔥')).toBeInTheDocument()
-    // Mining icon is pickaxe
     await expect.element(screen.getByText('⛏️')).toBeInTheDocument()
-    // Handiwork icon is wrench
     await expect.element(screen.getByText('🔧')).toBeInTheDocument()
   })
 
@@ -31,7 +28,6 @@ describe('SuitabilityTable', () => {
     const { screen } = await renderSimple(
       <SuitabilityTable data={[{ workType: 'Kindling', level: 3 }]} />
     )
-    // 3 filled stars + 1 empty star
     const filledStars = await screen.getByText('⭐').all()
     const emptyStars = await screen.getByText('☆').all()
     expect(filledStars).toHaveLength(3)

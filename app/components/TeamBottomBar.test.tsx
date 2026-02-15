@@ -11,7 +11,6 @@ describe('TeamBottomBar', () => {
 
   it('should not render when team is empty', async () => {
     const { screen } = await renderWithProviders(<TeamBottomBar />)
-    // The component returns null when team is empty and not expanded
     expect(screen.container.querySelector('.fixed')).toBeNull()
   })
 
@@ -38,10 +37,8 @@ describe('TeamBottomBar', () => {
     addPal(MOCK_LAMBALL)
     const { screen } = await renderWithProviders(<TeamBottomBar />)
 
-    // Click to expand
     await screen.getByText('My Team').click()
 
-    // Should show the Pal name in the expanded section
     await expect.element(screen.getByText('Lamball')).toBeInTheDocument()
   })
 
@@ -49,27 +46,20 @@ describe('TeamBottomBar', () => {
     addPal(MOCK_LAMBALL)
     const { screen } = await renderWithProviders(<TeamBottomBar />)
 
-    // Expand
     await screen.getByText('My Team').click()
     await expect.element(screen.getByText('Lamball')).toBeInTheDocument()
 
-    // Collapse
     await screen.getByText('My Team').click()
     await expect.element(screen.getByText('Lamball')).not.toBeInTheDocument()
   })
 
   it('should show empty message when expanded with no Pals', async () => {
-    // Add a Pal so the bar appears, then expand, then remove the Pal
     addPal(MOCK_LAMBALL)
     const { screen } = await renderWithProviders(<TeamBottomBar />)
 
-    // Expand
     await screen.getByText('My Team').click()
-
-    // Remove the Pal via the remove button in the expanded panel
     await screen.getByTitle('Remove from team').click()
 
-    // The expanded view should now show the empty message
     await expect.element(
       screen.getByText('No Pals in your team yet.')
     ).toBeInTheDocument()
@@ -80,13 +70,9 @@ describe('TeamBottomBar', () => {
     addPal(MOCK_FOXPARKS)
     const { screen } = await renderWithProviders(<TeamBottomBar />)
 
-    // Expand
     await screen.getByText('My Team').click()
-
-    // Find and click a remove button
     await screen.getByTitle('Remove from team').first().click()
 
-    // One Pal should remain
     await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
   })
 })

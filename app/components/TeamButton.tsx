@@ -8,14 +8,7 @@ interface TeamButtonProps {
   className?: string
 }
 
-/**
- * Button to add/remove a Pal from the team
- * FR-406: Page MUST include "Add to Team" / "Remove from Team" button connected to TanStack Store
- * FR-407: Button state MUST reflect current team membership (reactive to store changes)
- */
 export function TeamButton({ pal, size = 'md', className = '' }: TeamButtonProps) {
-  // Subscribe to store to get reactive updates
-  // FR-106: Store MUST NOT use React Context - using useStore directly
   const isInTeam = useStore(teamStore, (state) =>
     state.pals.some((p) => p.id === pal.id)
   )
@@ -60,9 +53,6 @@ export function TeamButton({ pal, size = 'md', className = '' }: TeamButtonProps
   )
 }
 
-/**
- * Compact team button for use in cards
- */
 export function TeamButtonCompact({ pal }: { pal: Pal }) {
   const isInTeam = useStore(teamStore, (state) =>
     state.pals.some((p) => p.id === pal.id)

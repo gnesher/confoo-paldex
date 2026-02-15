@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderApp, MOCK_PALS, filterPals, DATA_TIMEOUT } from './helpers'
 
-// ---- mock the data layer (no real API / no artificial delay) ----
 vi.mock('~/utils/pals', () => ({
   getPals: vi.fn(),
   getPalById: vi.fn(),
@@ -16,8 +15,6 @@ beforeEach(() => {
   mockGetPals.mockImplementation(async (params) => filterPals(MOCK_PALS, params))
   mockGetPalById.mockImplementation(async (id) => MOCK_PALS.find((p) => p.id === id) ?? null)
 })
-
-// ---- tests ----
 
 describe('Detail Page', () => {
   it('should display the Pal name and ID', async () => {
@@ -40,12 +37,10 @@ describe('Detail Page', () => {
   it('should display type badges', async () => {
     const { screen } = await renderApp('/pals/001')
 
-    // Lamball is Neutral type
     await expect.element(screen.getByText('Neutral'), DATA_TIMEOUT).toBeInTheDocument()
   })
 
   it('should display dual type badges', async () => {
-    // Pengullet (010) is Water + Ice
     const { screen } = await renderApp('/pals/010')
 
     await expect.element(screen.getByText('Water', { exact: true }), DATA_TIMEOUT).toBeInTheDocument()
@@ -65,7 +60,6 @@ describe('Detail Page', () => {
 
     await expect.element(screen.getByText('Work Suitability'), DATA_TIMEOUT).toBeInTheDocument()
 
-    // Lamball has Handiwork, Transporting, Farming
     await expect.element(screen.getByText('Handiwork')).toBeInTheDocument()
     await expect.element(screen.getByText('Transporting')).toBeInTheDocument()
     await expect.element(screen.getByText('Farming')).toBeInTheDocument()
@@ -116,7 +110,6 @@ describe('Detail Page', () => {
     await screen.getByText('Add to Team').click()
     await screen.getByText('My Team').click()
 
-    // Expanded bar shows the per-member remove button
     await expect.element(screen.getByTitle('Remove from team')).toBeInTheDocument()
   })
 
@@ -128,7 +121,6 @@ describe('Detail Page', () => {
     await screen.getByText('Add to Team').click()
     await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
 
-    // Navigate back to home
     await screen.getByText('Back to Paldex').click()
 
     await expect.element(
@@ -136,7 +128,6 @@ describe('Detail Page', () => {
       DATA_TIMEOUT
     ).toHaveTextContent('Paldex')
 
-    // Team bar should still show
     await expect.element(screen.getByText('1 Pal')).toBeInTheDocument()
   })
 
@@ -161,7 +152,6 @@ describe('Detail Page', () => {
   })
 
   it('should display different Pals correctly', async () => {
-    // Foxparks is Fire type with Kindling suitability
     const { screen } = await renderApp('/pals/005')
 
     await expect.element(

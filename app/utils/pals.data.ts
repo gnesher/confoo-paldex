@@ -1,22 +1,11 @@
 import type { Pal, PalType, Suitability } from '~/schemas/pal'
 
-/**
- * Real Pal data from Palworld
- * Images from: https://github.com/mlg404/palworld-paldex-api
- */
-
-// GitHub raw URL base for pal images
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/mlg404/palworld-paldex-api/main/public/images/paldeck'
 
-/**
- * Get the image URL for a Pal by ID
- * Uses the palworld-paldex-api GitHub repo which has all pal images
- */
 function getPalImageUrl(id: string): string {
   return `${IMAGE_BASE_URL}/${id}.png`
 }
 
-// Real Pal data for the first 111 pals (real Palworld pals)
 const REAL_PALS: { id: string; name: string; types: PalType[]; stats: { hp: number; attack: number; defense: number }; suitability: Suitability[]; drops: { item: string; quantity: number }[] }[] = [
   { id: '001', name: 'Lamball', types: ['Neutral'], stats: { hp: 70, attack: 70, defense: 70 }, suitability: [{ workType: 'Handiwork', level: 1 }, { workType: 'Transporting', level: 1 }, { workType: 'Farming', level: 1 }], drops: [{ item: 'Wool', quantity: 1 }] },
   { id: '002', name: 'Cattiva', types: ['Neutral'], stats: { hp: 70, attack: 70, defense: 70 }, suitability: [{ workType: 'Handiwork', level: 1 }, { workType: 'Mining', level: 1 }], drops: [{ item: 'Red Berries', quantity: 1 }] },
@@ -131,10 +120,8 @@ const REAL_PALS: { id: string; name: string; types: PalType[]; stats: { hp: numb
   { id: '111', name: 'Jetragon', types: ['Dragon'], stats: { hp: 110, attack: 160, defense: 100 }, suitability: [{ workType: 'Gathering', level: 3 }], drops: [{ item: 'Pal Metal Ingot', quantity: 1 }, { item: 'Diamond', quantity: 1 }] },
 ]
 
-// All real Palworld pals (111 total)
 const ALL_PALS = REAL_PALS
 
-// Generate all Pals with images
 function generatePals(): Pal[] {
   return ALL_PALS.map((pal) => ({
     ...pal,
@@ -142,21 +129,12 @@ function generatePals(): Pal[] {
   }))
 }
 
-/**
- * All 111 real Palworld Pals with images from GitHub
- */
 export const mockPals: Pal[] = generatePals()
 
-/**
- * Get a Pal by ID
- */
 export function getMockPalById(id: string): Pal | undefined {
   return mockPals.find((pal) => pal.id === id)
 }
 
-/**
- * Filter Pals by search criteria
- */
 export function filterMockPals(params: {
   search?: string
   types?: string[]

@@ -25,14 +25,11 @@ describe('TeamButton', () => {
   it('should toggle team membership on click', async () => {
     const { screen } = await renderWithProviders(<TeamButton pal={MOCK_LAMBALL} />)
 
-    // Initially "Add to Team"
     await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
 
-    // Click to add
     await screen.getByRole('button').click()
     await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
 
-    // Click to remove
     await screen.getByRole('button').click()
     await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
   })

@@ -34,9 +34,7 @@ describe('PalCard', () => {
 
   it('should render HP, Attack, and Defense stat values', async () => {
     const { screen } = await renderWithProviders(<PalCard pal={MOCK_FOXPARKS} />)
-    // Foxparks: hp=65, attack=70, defense=70
     await expect.element(screen.getByText('65')).toBeInTheDocument()
-    // attack and defense are same, just check they appear
     const seventies = await screen.getByText('70').all()
     expect(seventies.length).toBeGreaterThanOrEqual(2)
   })

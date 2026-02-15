@@ -6,7 +6,6 @@ import { createRouter } from './router'
 
 import './styles/globals.css'
 
-// Create router and query client
 const { router, queryClient } = createRouter()
 
 function App() {
@@ -19,7 +18,6 @@ function App() {
   )
 }
 
-// Mount the app
 const rootElement = document.getElementById('root')
 if (rootElement) {
   ReactDOM.createRoot(rootElement).render(<App />)

@@ -2,18 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ErrorBoundary, ErrorFallback } from './ErrorBoundary'
 import { renderWithProviders } from '../../tests/helpers/render'
 
-// Component that throws an error on render
 function ThrowingComponent({ message }: { message: string }): never {
   throw new Error(message)
 }
 
-// Component that renders normally
 function GoodComponent() {
   return <div>Everything is fine</div>
 }
 
 describe('ErrorBoundary', () => {
-  // Suppress console.error from React error boundary during tests
   const originalConsoleError = console.error
   beforeEach(() => {
     console.error = vi.fn()

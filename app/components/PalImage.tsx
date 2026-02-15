@@ -8,10 +8,6 @@ interface PalImageProps {
   fallbackIconSize?: 'sm' | 'md' | 'lg'
 }
 
-/**
- * Pal image with graceful fallback on error.
- * Uses React state instead of direct DOM manipulation.
- */
 export function PalImage({
   src,
   alt,

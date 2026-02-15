@@ -8,11 +8,6 @@ import { PalGrid } from '~/components/PalGrid'
 import { PalCardSkeleton } from '~/components/PalCard'
 import { FilterSidebar } from '~/components/FilterSidebar'
 
-/**
- * Search params schema for URL validation
- * FR-302: Route MUST define search params schema
- * FR-303: Route MUST use validateSearch from TanStack Router
- */
 const searchParamsSchema = z.object({
   q: z.string().optional(),
   // Accept both string (from URL) and string[] (from router state) so
@@ -30,7 +25,6 @@ const searchParamsSchema = z.object({
 
 type SearchParams = z.infer<typeof searchParamsSchema>
 
-// Query options factory for getPals
 function palsQueryOptions(params: SearchParams) {
   return {
     queryKey: ['pals', params] as const,
@@ -56,7 +50,6 @@ function HomePage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* FilterSidebar with Form and type multi-select */}
       <FilterSidebar
         initialValues={{
           q: search.q,
@@ -66,7 +59,6 @@ function HomePage() {
         }}
       />
 
-      {/* Main content */}
       <main className="flex-1 p-6 overflow-hidden">
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Paldex</h1>
@@ -76,7 +68,6 @@ function HomePage() {
           <ActiveFilters search={search} />
         </header>
 
-        {/* Virtual grid with Suspense boundary */}
         <Suspense fallback={<LoadingSkeleton />}>
           <PalGridWithData search={search} />
         </Suspense>
@@ -85,9 +76,6 @@ function HomePage() {
   )
 }
 
-/**
- * Display active filters as badges
- */
 function ActiveFilters({ search }: { search: SearchParams }) {
   const hasFilters =
     search.q ||
@@ -121,9 +109,6 @@ function ActiveFilters({ search }: { search: SearchParams }) {
   )
 }
 
-/**
- * Component that fetches and displays Pal data
- */
 function PalGridWithData({ search }: { search: SearchParams }) {
   const { data: pals } = useSuspenseQuery(palsQueryOptions(search))
 
@@ -135,9 +120,6 @@ function PalGridWithData({ search }: { search: SearchParams }) {
   )
 }
 
-/**
- * Loading skeleton
- */
 function LoadingSkeleton() {
   return (
     <div>

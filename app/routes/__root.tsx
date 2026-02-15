@@ -17,9 +17,7 @@ function RootComponent() {
       <div className="min-h-screen pb-14">
         <Outlet />
       </div>
-      {/* Team Bottom Bar - FR-408, FR-409 */}
       <TeamBottomBar />
-      {/* TanStack DevTools - Constitution Principle IV: Tutorial-Grade Quality */}
       <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
       <TanStackRouterDevtools position="bottom-right" />
     </>

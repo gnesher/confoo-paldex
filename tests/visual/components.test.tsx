@@ -26,9 +26,6 @@ import {
   MOCK_DROPS,
 } from '../helpers/fixtures'
 
-/**
- * Helper to wrap components that need Router context in a minimal provider.
- */
 async function renderWithRouter(ui: React.ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },

@@ -7,9 +7,6 @@ interface EmptyStateProps {
   showClearButton?: boolean
 }
 
-/**
- * Empty state component for when no results are found
- */
 export function EmptyState({
   title = 'No Pals found',
   message = 'Try adjusting your search filters',
@@ -34,9 +31,6 @@ export function EmptyState({
   )
 }
 
-/**
- * 404 Not Found state
- */
 export function NotFoundState({ message = 'The page you are looking for does not exist.' }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -53,9 +47,6 @@ export function NotFoundState({ message = 'The page you are looking for does not
   )
 }
 
-/**
- * Pal Not Found state
- */
 export function PalNotFoundState({ palId }: { palId: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-gray-500">

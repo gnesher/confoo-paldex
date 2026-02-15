@@ -15,7 +15,6 @@ import { clearTeam } from '~/stores/team'
 import { PalGrid } from '~/components/PalGrid'
 import { FilterSidebar } from '~/components/FilterSidebar'
 
-// Mock the pals data utility
 vi.mock('~/utils/pals', () => ({
   getPals: vi.fn(),
   getPalById: vi.fn(),
@@ -25,10 +24,6 @@ import { getPals } from '~/utils/pals'
 
 const mockGetPals = vi.mocked(getPals)
 
-/**
- * Simplified home page component that mirrors the real one
- * but without TanStack Router's validateSearch middleware.
- */
 function TestHomePage() {
   return (
     <div className="flex min-h-screen">
@@ -129,7 +124,6 @@ describe('Home Page Integration', () => {
   })
 
   it('should show loading state before data loads', async () => {
-    // Never resolve
     mockGetPals.mockReturnValue(new Promise(() => {}))
 
     const { screen } = await renderHomePage()

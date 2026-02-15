@@ -3,7 +3,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { PalType } from '~/schemas/pal'
 
-// All available Pal types for the multi-select
 const PAL_TYPES: PalType[] = [
   'Neutral', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Ground', 'Dark', 'Dragon'
 ]
@@ -19,14 +18,9 @@ interface FilterSidebarProps {
   initialValues: SearchParams
 }
 
-/**
- * FilterSidebar component with debounced search, type multi-select, and attack range slider.
- * Filter changes update URL search params via TanStack Router navigation.
- */
 export function FilterSidebar({ initialValues }: FilterSidebarProps) {
   const navigate = useNavigate()
 
-  // Update URL with new search params
   const updateSearch = useCallback((updates: Partial<SearchParams>) => {
     navigate({
       to: '/',
@@ -45,13 +39,11 @@ export function FilterSidebar({ initialValues }: FilterSidebarProps) {
     })
   }, [navigate, initialValues])
 
-  // Debounced search for text input
   const debouncedSearch = useDebouncedCallback(
     (q: string) => updateSearch({ q }),
     { wait: 300 }
   )
 
-  // Debounced attack range update
   const debouncedAttackChange = useDebouncedCallback(
     (min: number, max: number) => updateSearch({ atkMin: min, atkMax: max }),
     { wait: 300 }
@@ -62,26 +54,22 @@ export function FilterSidebar({ initialValues }: FilterSidebarProps) {
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
 
       <div className="space-y-6">
-        {/* Search Input with debounce */}
         <SearchInput
           defaultValue={initialValues.q ?? ''}
           onChange={debouncedSearch}
         />
 
-        {/* Type Multi-Select */}
         <TypeMultiSelect
           selected={initialValues.types ?? []}
           onChange={(types) => updateSearch({ types })}
         />
 
-        {/* Attack Range Slider */}
         <AttackRangeSlider
           min={initialValues.atkMin ?? 0}
           max={initialValues.atkMax ?? 200}
           onChange={debouncedAttackChange}
         />
 
-        {/* Clear Filters Button */}
         <ClearFiltersButton
           hasFilters={
             !!(initialValues.q || initialValues.types?.length || initialValues.atkMin || (initialValues.atkMax !== undefined && initialValues.atkMax < 200))
@@ -92,9 +80,6 @@ export function FilterSidebar({ initialValues }: FilterSidebarProps) {
   )
 }
 
-/**
- * Search input with local state and debounced onChange.
- */
 function SearchInput({
   defaultValue,
   onChange,
@@ -104,7 +89,6 @@ function SearchInput({
 }) {
   const [value, setValue] = useState(defaultValue)
 
-  // Sync with URL changes
   useEffect(() => {
     setValue(defaultValue)
   }, [defaultValue])
@@ -128,9 +112,6 @@ function SearchInput({
   )
 }
 
-/**
- * Multi-select dropdown for Pal types with click-outside-to-close behaviour.
- */
 function TypeMultiSelect({
   selected,
   onChange,
@@ -141,7 +122,6 @@ function TypeMultiSelect({
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     if (!isOpen) return
 
@@ -200,7 +180,6 @@ function TypeMultiSelect({
         </div>
       )}
 
-      {/* Selected types badges */}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
           {selected.map((type) => (
@@ -224,9 +203,6 @@ function TypeMultiSelect({
   )
 }
 
-/**
- * Attack range slider with debounced onChange (debounce applied by parent).
- */
 function AttackRangeSlider({
   min,
   max,
@@ -239,7 +215,6 @@ function AttackRangeSlider({
   const [minValue, setMinValue] = useState(min)
   const [maxValue, setMaxValue] = useState(max)
 
-  // Sync with URL changes
   useEffect(() => {
     setMinValue(min)
     setMaxValue(max)
@@ -271,7 +246,6 @@ function AttackRangeSlider({
         <span>{maxValue}</span>
       </div>
       
-      {/* Dual range slider using two overlapping inputs */}
       <div className="relative h-2">
         <div className="absolute w-full h-2 bg-gray-200 rounded-full" />
         <div
@@ -309,9 +283,6 @@ function AttackRangeSlider({
   )
 }
 
-/**
- * Clear all filters button
- */
 function ClearFiltersButton({ hasFilters }: { hasFilters: boolean }) {
   const navigate = useNavigate()
 

@@ -38,10 +38,6 @@ interface SuitabilityTableProps {
   data: Suitability[]
 }
 
-/**
- * TanStack Table for displaying Pal work suitability
- * FR-404: Page MUST display a Suitability table using TanStack Table
- */
 export function SuitabilityTable({ data }: SuitabilityTableProps) {
   const table = useReactTable({
     data,

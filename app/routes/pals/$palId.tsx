@@ -10,9 +10,6 @@ import { PalNotFoundState } from '~/components/EmptyState'
 import { TypeBadge } from '~/components/TypeBadge'
 import { PalImage } from '~/components/PalImage'
 
-/**
- * Query options factory for getPalById
- */
 function palQueryOptions(id: string) {
   return {
     queryKey: ['pal', id] as const,
@@ -31,7 +28,6 @@ function PalDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Back navigation */}
       <div className="bg-white shadow">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <Link
@@ -44,7 +40,6 @@ function PalDetailPage() {
         </div>
       </div>
 
-      {/* Main content with Suspense */}
       <Suspense fallback={<LoadingSkeleton />}>
         <PalDetailContent palId={palId} />
       </Suspense>
@@ -52,13 +47,9 @@ function PalDetailPage() {
   )
 }
 
-/**
- * Pal detail content with data fetching
- */
 function PalDetailContent({ palId }: { palId: string }) {
   const { data: pal } = useSuspenseQuery(palQueryOptions(palId))
 
-  // Update document title
   useEffect(() => {
     if (pal) {
       document.title = `${pal.name} | Paldex`
@@ -68,17 +59,14 @@ function PalDetailContent({ palId }: { palId: string }) {
     }
   }, [pal])
 
-  // Handle not found
   if (!pal) {
     return <PalNotFoundState palId={palId} />
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Hero Section */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
         <div className="md:flex">
-          {/* Image */}
           <div className="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
             <PalImage
               src={pal.imageUrl}
@@ -89,28 +77,24 @@ function PalDetailContent({ palId }: { palId: string }) {
             />
           </div>
 
-          {/* Info */}
           <div className="md:w-2/3 p-6">
             <div className="flex items-baseline gap-3 mb-4">
               <span className="text-gray-400 font-mono">#{pal.id}</span>
               <h1 className="text-3xl font-bold text-gray-900">{pal.name}</h1>
             </div>
 
-            {/* Types */}
             <div className="flex gap-2 mb-6">
               {pal.types.map((type) => (
                 <TypeBadge key={type} type={type} size="md" />
               ))}
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <StatCard label="HP" value={pal.stats.hp} icon="❤️" color="red" />
               <StatCard label="Attack" value={pal.stats.attack} icon="⚔️" color="orange" />
               <StatCard label="Defense" value={pal.stats.defense} icon="🛡️" color="blue" />
             </div>
 
-            {/* Description */}
             {pal.description && (
               <p className="text-gray-600">{pal.description}</p>
             )}
@@ -118,9 +102,7 @@ function PalDetailContent({ palId }: { palId: string }) {
         </div>
       </div>
 
-      {/* Tables Section */}
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Suitability Table */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <span>🔧</span>
@@ -129,7 +111,6 @@ function PalDetailContent({ palId }: { palId: string }) {
           <SuitabilityTable data={pal.suitability} />
         </div>
 
-        {/* Drops Table */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <span>📦</span>
@@ -139,7 +120,6 @@ function PalDetailContent({ palId }: { palId: string }) {
         </div>
       </div>
 
-      {/* Team Button */}
       <div className="mt-8 text-center pb-20">
         <TeamButton pal={pal} size="lg" />
       </div>
@@ -147,9 +127,6 @@ function PalDetailContent({ palId }: { palId: string }) {
   )
 }
 
-/**
- * Stat card component
- */
 function StatCard({
   label,
   value,
@@ -178,9 +155,6 @@ function StatCard({
   )
 }
 
-/**
- * Loading skeleton
- */
 function LoadingSkeleton() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">

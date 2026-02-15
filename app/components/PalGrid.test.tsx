@@ -8,7 +8,6 @@ describe('PalGrid', () => {
     const { screen } = await renderWithProviders(
       <PalGrid pals={[]} isLoading={true} />
     )
-    // Skeletons have animate-pulse class
     const skeletons = screen.container.querySelectorAll('.animate-pulse')
     expect(skeletons.length).toBe(12)
   })

@@ -44,10 +44,6 @@ interface DropsTableProps {
   data: Drop[]
 }
 
-/**
- * TanStack Table for displaying Pal item drops
- * FR-405: Page MUST display a Drops table using TanStack Table
- */
 export function DropsTable({ data }: DropsTableProps) {
   const table = useReactTable({
     data,

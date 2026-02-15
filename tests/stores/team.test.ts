@@ -13,7 +13,6 @@ import { MOCK_LAMBALL, MOCK_FOXPARKS, MOCK_PENGULLET } from '../helpers/fixtures
 
 describe('teamStore', () => {
   beforeEach(() => {
-    // Reset store state to empty before each test
     clearTeam()
     localStorage.clear()
   })

@@ -16,32 +16,26 @@ import {
 } from '../helpers/fixtures'
 
 /**
- * A focused mock dataset with enough variety for filter / search / type tests.
- *
- *   3 Neutral, 2 Fire, 2 Grass, 1 Water, 1 Electric, 1 Water+Ice = 10 pals
+ * 3 Neutral, 2 Fire, 2 Grass, 1 Water, 1 Electric, 1 Water+Ice = 10 pals
  */
 export const MOCK_PALS: Pal[] = [
-  MOCK_LAMBALL,  // 001, Neutral
+  MOCK_LAMBALL,
   createMockPal({ id: '002', name: 'Cattiva', types: ['Neutral'] }),
   createMockPal({ id: '003', name: 'Chikipi', types: ['Neutral'] }),
   createMockPal({ id: '004', name: 'Lifmunk', types: ['Grass'] }),
-  MOCK_FOXPARKS, // 005, Fire
+  MOCK_FOXPARKS,
   createMockPal({ id: '006', name: 'Fuack', types: ['Water'] }),
   createMockPal({ id: '007', name: 'Sparkit', types: ['Electric'] }),
   createMockPal({ id: '008', name: 'Tanzee', types: ['Grass'] }),
   createMockPal({ id: '009', name: 'Rooby', types: ['Fire'], stats: { hp: 75, attack: 100, defense: 75 }, suitability: [{ workType: 'Kindling', level: 1 }], drops: [{ item: 'Flame Organ', quantity: 1 }] }),
-  MOCK_PENGULLET, // 010, Water + Ice
+  MOCK_PENGULLET,
 ]
 
-/** Standard timeout for expect.element — generous enough even on slow CI. */
 export const DATA_TIMEOUT = { timeout: 2000 }
 
 /**
- * Render the full Paldex app (real route tree, mocked data) in vitest browser
- * mode.  Memory history makes navigation testable without a dev server.
- *
- * **Important:** The calling test file must `vi.mock('~/utils/pals')` and
- * configure mock return values (see home / detail test files for examples).
+ * Render the full Paldex app with memory history.
+ * The calling test file must `vi.mock('~/utils/pals')` and configure mock return values.
  */
 export async function renderApp(initialPath = '/') {
   clearTeam()
@@ -68,10 +62,6 @@ export async function renderApp(initialPath = '/') {
   return { screen, router, queryClient }
 }
 
-/**
- * Helper: filter MOCK_PALS the same way the real `filterMockPals` does,
- * so mocks return realistic results.
- */
 export function filterPals(
   pals: Pal[],
   params: { search?: string; types?: string[]; minAttack?: number; maxAttack?: number },
