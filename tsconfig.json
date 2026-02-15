@@ -23,5 +23,5 @@
       "~/*": ["./app/*"]
     }
   },
-  "include": ["app/**/*", "tests/**/*", "*.config.ts"]
+  "include": ["app/**/*", "server/**/*", "tests/**/*", "*.config.ts"]
 }

@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import type { Pal } from '~/schemas/pal'
-import { filterMockPals, getMockPalById } from './pals.data'
 
 export const GetPalsParamsSchema = z.object({
   search: z.string().optional(),
@@ -11,27 +10,36 @@ export const GetPalsParamsSchema = z.object({
 
 export type GetPalsParams = z.infer<typeof GetPalsParamsSchema>
 
-// Artificial delay to demonstrate Suspense loading states
-const ARTIFICIAL_DELAY_MS = 500
-
-async function artificialDelay(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, ARTIFICIAL_DELAY_MS))
-}
-
 export async function getPals(params: GetPalsParams): Promise<Pal[]> {
   const validated = GetPalsParamsSchema.parse(params)
 
-  await artificialDelay()
+  const searchParams = new URLSearchParams()
+  if (validated.search) searchParams.set('search', validated.search)
+  if (validated.types?.length) searchParams.set('types', validated.types.join(','))
+  if (validated.minAttack !== undefined) searchParams.set('minAttack', String(validated.minAttack))
+  if (validated.maxAttack !== undefined) searchParams.set('maxAttack', String(validated.maxAttack))
 
-  return filterMockPals({
-    search: validated.search,
-    types: validated.types,
-    minAttack: validated.minAttack,
-    maxAttack: validated.maxAttack,
-  })
+  const qs = searchParams.toString()
+  const url = `/api/pals${qs ? `?${qs}` : ''}`
+
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error(`Failed to fetch pals: ${res.status} ${res.statusText}`)
+  }
+
+  return res.json()
 }
 
 export async function getPalById(id: string): Promise<Pal | null> {
-  await artificialDelay()
-  return getMockPalById(id) ?? null
+  const res = await fetch(`/api/pals/${encodeURIComponent(id)}`)
+
+  if (res.status === 404) {
+    return null
+  }
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch pal ${id}: ${res.status} ${res.statusText}`)
+  }
+
+  return res.json()
 }
