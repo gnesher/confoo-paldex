@@ -2,59 +2,56 @@ import { createSignal, createEffect, onCleanup, For, Show } from 'solid-js'
 import { createDebouncer } from '@tanstack/solid-pacer'
 import { useNavigate } from '@tanstack/solid-router'
 import type { PalType } from '~/schemas/pal'
+import { MAX_ATTACK_STAT } from '~/schemas/pal'
+import { hasActiveFilters, type SearchParams } from '~/schemas/search'
 
-// All available Pal types for the multi-select
 const PAL_TYPES: PalType[] = [
-  'Neutral', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Ground', 'Dark', 'Dragon'
+  'Neutral', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Ground', 'Dark', 'Dragon',
 ]
-
-interface SearchParams {
-  q?: string
-  types?: string[]
-  atkMin?: number
-  atkMax?: number
-}
 
 interface FilterSidebarProps {
   initialValues: SearchParams
 }
 
 /**
- * FilterSidebar component with debounced search, type multi-select, and attack range slider.
- * Filter changes update URL search params via TanStack Router navigation.
+ * Merge a partial update into the current filter values, converting each
+ * field into its URL-friendly representation (undefined = omit from URL).
  */
+function buildSearchUpdate(
+  updates: Partial<SearchParams>,
+  current: SearchParams,
+) {
+  const q = updates.q !== undefined ? updates.q : current.q
+  const types = updates.types !== undefined ? updates.types : current.types
+  const atkMin = updates.atkMin !== undefined ? updates.atkMin : current.atkMin
+  const atkMax = updates.atkMax !== undefined ? updates.atkMax : current.atkMax
+
+  return {
+    q: q || undefined,
+    types: types?.length ? types.join(',') : undefined,
+    atkMin: atkMin && atkMin > 0 ? atkMin : undefined,
+    atkMax: atkMax !== undefined && atkMax < MAX_ATTACK_STAT ? atkMax : undefined,
+  }
+}
+
 export function FilterSidebar(props: FilterSidebarProps) {
   const navigate = useNavigate()
 
-  // Update URL with new search params
   const updateSearch = (updates: Partial<SearchParams>) => {
     navigate({
       to: '/',
-      search: {
-        q: updates.q !== undefined ? (updates.q || undefined) : props.initialValues.q,
-        types: updates.types !== undefined 
-          ? (updates.types?.length ? updates.types.join(',') : undefined)
-          : (props.initialValues.types?.length ? props.initialValues.types.join(',') : undefined),
-        atkMin: updates.atkMin !== undefined
-          ? (updates.atkMin > 0 ? updates.atkMin : undefined)
-          : props.initialValues.atkMin,
-        atkMax: updates.atkMax !== undefined
-          ? (updates.atkMax < 200 ? updates.atkMax : undefined)
-          : props.initialValues.atkMax,
-      },
+      search: buildSearchUpdate(updates, props.initialValues),
     })
   }
 
-  // Debounced search for text input
   const searchDebouncer = createDebouncer(
     (q: string) => updateSearch({ q }),
-    { wait: 300 }
+    { wait: 300 },
   )
 
-  // Debounced attack range update
   const attackDebouncer = createDebouncer(
     (min: number, max: number) => updateSearch({ atkMin: min, atkMax: max }),
-    { wait: 300 }
+    { wait: 300 },
   )
 
   return (
@@ -62,46 +59,34 @@ export function FilterSidebar(props: FilterSidebarProps) {
       <h2 class="text-lg font-semibold mb-4">Filters</h2>
 
       <div class="space-y-6">
-        {/* Search Input with debounce */}
         <SearchInput
           defaultValue={props.initialValues.q ?? ''}
           onChange={(q) => searchDebouncer.maybeExecute(q)}
         />
 
-        {/* Type Multi-Select */}
         <TypeMultiSelect
           selected={props.initialValues.types ?? []}
           onChange={(types) => updateSearch({ types })}
         />
 
-        {/* Attack Range Slider */}
         <AttackRangeSlider
           min={props.initialValues.atkMin ?? 0}
-          max={props.initialValues.atkMax ?? 200}
+          max={props.initialValues.atkMax ?? MAX_ATTACK_STAT}
           onChange={(min, max) => attackDebouncer.maybeExecute(min, max)}
         />
 
-        {/* Clear Filters Button */}
-        <ClearFiltersButton
-          hasFilters={
-            !!(props.initialValues.q || props.initialValues.types?.length || props.initialValues.atkMin || (props.initialValues.atkMax !== undefined && props.initialValues.atkMax < 200))
-          }
-        />
+        <ClearFiltersButton hasFilters={hasActiveFilters(props.initialValues)} />
       </div>
     </aside>
   )
 }
 
-/**
- * Search input with local state and debounced onChange.
- */
 function SearchInput(props: {
   defaultValue: string
   onChange: (value: string) => void
 }) {
   const [value, setValue] = createSignal(props.defaultValue)
 
-  // Sync with URL changes
   createEffect(() => {
     setValue(props.defaultValue)
   })
@@ -125,9 +110,6 @@ function SearchInput(props: {
   )
 }
 
-/**
- * Multi-select dropdown for Pal types with click-outside-to-close behaviour.
- */
 function TypeMultiSelect(props: {
   selected: string[]
   onChange: (types: string[]) => void
@@ -135,7 +117,6 @@ function TypeMultiSelect(props: {
   const [isOpen, setIsOpen] = createSignal(false)
   let containerRef: HTMLDivElement | undefined
 
-  // Close dropdown when clicking outside
   createEffect(() => {
     if (!isOpen()) return
 
@@ -196,7 +177,6 @@ function TypeMultiSelect(props: {
         </div>
       </Show>
 
-      {/* Selected types badges */}
       <Show when={props.selected.length > 0}>
         <div class="flex flex-wrap gap-1 mt-2">
           <For each={props.selected}>
@@ -221,9 +201,6 @@ function TypeMultiSelect(props: {
   )
 }
 
-/**
- * Attack range slider with debounced onChange (debounce applied by parent).
- */
 function AttackRangeSlider(props: {
   min: number
   max: number
@@ -232,7 +209,6 @@ function AttackRangeSlider(props: {
   const [minValue, setMinValue] = createSignal(props.min)
   const [maxValue, setMaxValue] = createSignal(props.max)
 
-  // Sync with URL changes
   createEffect(() => {
     setMinValue(props.min)
     setMaxValue(props.max)
@@ -264,20 +240,19 @@ function AttackRangeSlider(props: {
         <span>{maxValue()}</span>
       </div>
       
-      {/* Dual range slider using two overlapping inputs */}
       <div class="relative h-2">
         <div class="absolute w-full h-2 bg-gray-200 rounded-full" />
         <div
           class="absolute h-2 bg-blue-500 rounded-full"
           style={{
-            left: `${(minValue() / 200) * 100}%`,
-            width: `${((maxValue() - minValue()) / 200) * 100}%`,
+            left: `${(minValue() / MAX_ATTACK_STAT) * 100}%`,
+            width: `${((maxValue() - minValue()) / MAX_ATTACK_STAT) * 100}%`,
           }}
         />
         <input
           type="range"
           min={0}
-          max={200}
+          max={MAX_ATTACK_STAT}
           step={5}
           value={minValue()}
           onInput={handleMinChange}
@@ -286,25 +261,22 @@ function AttackRangeSlider(props: {
         <input
           type="range"
           min={0}
-          max={200}
+          max={MAX_ATTACK_STAT}
           step={5}
           value={maxValue()}
           onInput={handleMaxChange}
           class="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-pointer"
         />
       </div>
-      
+
       <div class="flex justify-between text-xs text-gray-400 mt-1">
         <span>0</span>
-        <span>200</span>
+        <span>{MAX_ATTACK_STAT}</span>
       </div>
     </div>
   )
 }
 
-/**
- * Clear all filters button
- */
 function ClearFiltersButton(props: { hasFilters: boolean }) {
   const navigate = useNavigate()
 

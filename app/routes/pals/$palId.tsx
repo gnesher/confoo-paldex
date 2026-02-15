@@ -2,23 +2,13 @@ import { createRoute, Link } from '@tanstack/solid-router'
 import { createQuery } from '@tanstack/solid-query'
 import { Suspense, Show, For, createEffect, onCleanup } from 'solid-js'
 import { Route as rootRoute } from '../__root'
-import { getPalById } from '~/utils/pals'
+import { palDetailQueryOptions } from '~/utils/queries'
 import { SuitabilityTable } from '~/components/SuitabilityTable'
 import { DropsTable } from '~/components/DropsTable'
 import { TeamButton } from '~/components/TeamButton'
 import { PalNotFoundState } from '~/components/EmptyState'
 import { TypeBadge } from '~/components/TypeBadge'
 import { PalImage } from '~/components/PalImage'
-
-/**
- * Query options factory for getPalById
- */
-function palQueryOptions(id: string) {
-  return {
-    queryKey: ['pal', id] as const,
-    queryFn: () => getPalById(id),
-  }
-}
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -52,11 +42,8 @@ function PalDetailPage() {
   )
 }
 
-/**
- * Pal detail content with data fetching
- */
 function PalDetailContent(props: { palId: string }) {
-  const query = createQuery(() => palQueryOptions(props.palId))
+  const query = createQuery(() => palDetailQueryOptions(props.palId))
 
   // Update document title
   createEffect(() => {

@@ -1,48 +1,13 @@
 import { createRoute } from '@tanstack/solid-router'
 import { createQuery } from '@tanstack/solid-query'
 import { Suspense, Show, For } from 'solid-js'
-import { z } from 'zod'
 import { Route as rootRoute } from './__root'
-import { getPals } from '~/utils/pals'
+import { palListQueryOptions } from '~/utils/queries'
+import { searchParamsSchema, hasActiveFilters, type SearchParams } from '~/schemas/search'
+import { MAX_ATTACK_STAT } from '~/schemas/pal'
 import { PalGrid } from '~/components/PalGrid'
 import { PalCardSkeleton } from '~/components/PalCard'
 import { FilterSidebar } from '~/components/FilterSidebar'
-
-/**
- * Search params schema for URL validation
- * FR-302: Route MUST define search params schema
- * FR-303: Route MUST use validateSearch from TanStack Router
- */
-const searchParamsSchema = z.object({
-  q: z.string().optional(),
-  // Accept both string (from URL) and string[] (from router state) so
-  // memory-history re-validation doesn't break.
-  types: z.preprocess(
-    (val) => (Array.isArray(val) ? val.join(',') : val),
-    z
-      .string()
-      .optional()
-      .transform((val) => (val ? val.split(',').filter(Boolean) : undefined)),
-  ),
-  atkMin: z.coerce.number().min(0).max(200).optional().catch(undefined),
-  atkMax: z.coerce.number().min(0).max(200).optional().catch(undefined),
-})
-
-type SearchParams = z.infer<typeof searchParamsSchema>
-
-// Query options factory for getPals
-function palsQueryOptions(params: SearchParams) {
-  return {
-    queryKey: ['pals', params] as const,
-    queryFn: () =>
-      getPals({
-        search: params.q,
-        types: params.types,
-        minAttack: params.atkMin,
-        maxAttack: params.atkMax,
-      }),
-  }
-}
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -56,7 +21,6 @@ function HomePage() {
 
   return (
     <div class="flex min-h-screen">
-      {/* FilterSidebar with Form and type multi-select */}
       <FilterSidebar
         initialValues={{
           q: search().q,
@@ -66,7 +30,6 @@ function HomePage() {
         }}
       />
 
-      {/* Main content */}
       <main class="flex-1 p-6 overflow-hidden">
         <header class="mb-6">
           <h1 class="text-3xl font-bold text-gray-900">Paldex</h1>
@@ -76,7 +39,6 @@ function HomePage() {
           <ActiveFilters search={search()} />
         </header>
 
-        {/* Virtual grid with Suspense boundary */}
         <Suspense fallback={<LoadingSkeleton />}>
           <PalGridWithData search={search()} />
         </Suspense>
@@ -85,22 +47,13 @@ function HomePage() {
   )
 }
 
-/**
- * Display active filters as badges
- */
 function ActiveFilters(props: { search: SearchParams }) {
-  const hasFilters = () =>
-    props.search.q ||
-    props.search.types?.length ||
-    props.search.atkMin !== undefined ||
-    (props.search.atkMax !== undefined && props.search.atkMax < 200)
-
   return (
-    <Show when={hasFilters()}>
+    <Show when={hasActiveFilters(props.search)}>
       <div class="flex flex-wrap gap-2 mt-3">
         <Show when={props.search.q}>
           <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
-            Search: "{props.search.q}"
+            Search: &quot;{props.search.q}&quot;
           </span>
         </Show>
         <Show when={props.search.types?.length}>
@@ -114,9 +67,10 @@ function ActiveFilters(props: { search: SearchParams }) {
             )}
           </For>
         </Show>
-        <Show when={props.search.atkMin !== undefined || (props.search.atkMax !== undefined && props.search.atkMax < 200)}>
+        <Show when={props.search.atkMin !== undefined ||
+          (props.search.atkMax !== undefined && props.search.atkMax < MAX_ATTACK_STAT)}>
           <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
-            Attack: {props.search.atkMin ?? 0} - {props.search.atkMax ?? 200}
+            Attack: {props.search.atkMin ?? 0} - {props.search.atkMax ?? MAX_ATTACK_STAT}
           </span>
         </Show>
       </div>
@@ -124,11 +78,8 @@ function ActiveFilters(props: { search: SearchParams }) {
   )
 }
 
-/**
- * Component that fetches and displays Pal data
- */
 function PalGridWithData(props: { search: SearchParams }) {
-  const query = createQuery(() => palsQueryOptions(props.search))
+  const query = createQuery(() => palListQueryOptions(props.search))
 
   return (
     <Show when={query.data}>
@@ -142,9 +93,6 @@ function PalGridWithData(props: { search: SearchParams }) {
   )
 }
 
-/**
- * Loading skeleton
- */
 function LoadingSkeleton() {
   return (
     <div>
