@@ -2,44 +2,31 @@ import { createSignal, onMount, onCleanup, createEffect, Show, For } from 'solid
 import { createVirtualizer } from '@tanstack/solid-virtual'
 import type { Pal } from '~/schemas/pal'
 import { PalCard, PalCardSkeleton } from './PalCard'
+import { EmptyState } from './EmptyState'
 
 interface PalGridProps {
   pals: Pal[]
   isLoading?: boolean
 }
 
-/**
- * Calculate number of columns based on container width
- * Responsive: 2 cols on mobile, 3 on tablet, 4-5 on desktop
- */
 function calculateColumns(width: number): number {
-  if (width < 640) return 2   // sm
-  if (width < 1024) return 3  // md/lg
-  if (width < 1280) return 4  // lg
-  return 5                     // xl+
+  if (width < 640) return 2
+  if (width < 1024) return 3
+  if (width < 1280) return 4
+  return 5
 }
 
-/**
- * Virtualized grid of Pal cards
- * Uses TanStack Virtual for performance with 100+ items
- */
 export function PalGrid(props: PalGridProps) {
   let parentRef: HTMLDivElement | undefined
   const [columns, setColumns] = createSignal(4)
   const [containerWidth, setContainerWidth] = createSignal(800)
 
-  // Gap between cards
   const gap = 20
-
-  // Calculate card dimensions based on container
   const cardWidth = () => Math.floor((containerWidth() - (columns() - 1) * gap) / columns())
-  // Card height: aspect-[4/3] image + ~80px content
+  // aspect-[4/3] image + ~90px content
   const cardHeight = () => Math.floor(cardWidth() * 0.75) + 90
-
-  // Calculate number of rows based on items and columns
   const rowCount = () => Math.ceil(props.pals.length / columns())
 
-  // Setup virtualizer for rows
   const virtualizer = createVirtualizer({
     get count() { return rowCount() },
     getScrollElement: () => parentRef ?? null,
@@ -47,7 +34,6 @@ export function PalGrid(props: PalGridProps) {
     overscan: 3,
   })
 
-  // Handle resize to update column count and container width
   const handleResize = () => {
     if (parentRef) {
       const width = parentRef.clientWidth
@@ -56,7 +42,6 @@ export function PalGrid(props: PalGridProps) {
     }
   }
 
-  // Setup resize observer
   onMount(() => {
     if (!parentRef) return
 
@@ -73,9 +58,7 @@ export function PalGrid(props: PalGridProps) {
     })
   })
 
-  // Recalculate virtualizer when dimensions change
   createEffect(() => {
-    // Access reactive values to track them
     columns()
     containerWidth()
     virtualizer.measure()
@@ -97,17 +80,11 @@ export function PalGrid(props: PalGridProps) {
     >
       <Show
         when={props.pals.length > 0}
-        fallback={
-          <div class="flex flex-col items-center justify-center py-16 text-gray-500">
-            <span class="text-6xl mb-4">🔍</span>
-            <h3 class="text-xl font-semibold mb-2">No Pals found</h3>
-            <p class="text-sm">Try adjusting your search filters</p>
-          </div>
-        }
+        fallback={<EmptyState showClearButton={false} />}
       >
         <div
           ref={parentRef}
-          class="h-[calc(100vh-220px)] overflow-auto"
+          class="flex-1 min-h-0 overflow-auto"
         >
           <div
             style={{
@@ -156,9 +133,6 @@ export function PalGrid(props: PalGridProps) {
   )
 }
 
-/**
- * Grid stats display for debugging/demo purposes
- */
 export function PalGridStats(props: {
   total: number
   visible: number

@@ -5,19 +5,12 @@ import { teamStore, removePal } from '~/stores/team'
 import { PalImage } from '~/components/PalImage'
 import type { Pal } from '~/schemas/pal'
 
-/**
- * Collapsible bottom bar for team display
- * FR-408: Team MUST be displayed as a collapsible bottom bar, persistent across all routes
- * FR-409: Bottom bar MUST show team count when collapsed and expand on click to show Pal thumbnails
- */
 export function TeamBottomBar() {
   const [isExpanded, setIsExpanded] = createSignal(false)
   const [storageWarning, setStorageWarning] = createSignal(false)
 
-  // Subscribe to team store
   const team = useStore(teamStore, (state) => state.pals)
 
-  // Check localStorage availability on mount
   onMount(() => {
     try {
       const testKey = '__paldex_storage_test__'
@@ -31,20 +24,17 @@ export function TeamBottomBar() {
   return (
     <Show when={team().length > 0 || isExpanded()}>
       <div class="fixed bottom-0 left-0 right-0 z-50">
-        {/* Storage warning banner */}
         <Show when={storageWarning()}>
           <div class="bg-yellow-100 border-t border-yellow-300 px-4 py-2 text-sm text-yellow-800 text-center">
             ⚠️ localStorage unavailable. Team data will not persist across sessions.
           </div>
         </Show>
 
-        {/* Collapsed bar */}
         <div
           class={`bg-white border-t border-gray-200 shadow-lg transition-all duration-300 ${
             isExpanded() ? 'h-48' : 'h-14'
           }`}
         >
-          {/* Toggle button and count */}
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded())}
@@ -64,7 +54,6 @@ export function TeamBottomBar() {
             </span>
           </button>
 
-          {/* Expanded content */}
           <Show when={isExpanded()}>
             <div class="h-[calc(100%-3.5rem)] overflow-hidden">
               <Show
@@ -97,9 +86,6 @@ export function TeamBottomBar() {
   )
 }
 
-/**
- * Mini Pal card for the team bar
- */
 function TeamPalCard(props: {
   pal: Pal
   onRemove: () => void
@@ -126,7 +112,6 @@ function TeamPalCard(props: {
         </div>
       </Link>
       
-      {/* Remove button */}
       <button
         type="button"
         onClick={(e) => {

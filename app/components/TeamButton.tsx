@@ -1,6 +1,5 @@
 import { Show } from 'solid-js'
-import { useStore } from '@tanstack/solid-store'
-import { teamStore, togglePal } from '~/stores/team'
+import { togglePal, useIsInTeam } from '~/stores/team'
 import type { Pal } from '~/schemas/pal'
 
 interface TeamButtonProps {
@@ -9,34 +8,21 @@ interface TeamButtonProps {
   class?: string
 }
 
-/**
- * Button to add/remove a Pal from the team
- * FR-406: Page MUST include "Add to Team" / "Remove from Team" button connected to TanStack Store
- * FR-407: Button state MUST reflect current team membership (reactive to store changes)
- */
+const SIZE_CLASSES = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-6 py-3 text-lg',
+} as const
+
 export function TeamButton(props: TeamButtonProps) {
-  // Subscribe to store to get reactive updates
-  // FR-106: Store MUST NOT use React Context - using useStore directly
-  const isInTeam = useStore(teamStore, (state) =>
-    state.pals.some((p) => p.id === props.pal.id)
-  )
-
-  const sizeClasses: Record<string, string> = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  }
-
-  const handleClick = () => {
-    togglePal(props.pal)
-  }
+  const isInTeam = useIsInTeam(() => props.pal.id)
 
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={() => togglePal(props.pal)}
       class={`
-        ${sizeClasses[props.size ?? 'md']}
+        ${SIZE_CLASSES[props.size ?? 'md']}
         font-semibold rounded-lg transition-all duration-200
         ${
           isInTeam()
@@ -64,16 +50,11 @@ export function TeamButton(props: TeamButtonProps) {
   )
 }
 
-/**
- * Compact team button for use in cards
- */
 export function TeamButtonCompact(props: { pal: Pal }) {
-  const isInTeam = useStore(teamStore, (state) =>
-    state.pals.some((p) => p.id === props.pal.id)
-  )
+  const isInTeam = useIsInTeam(() => props.pal.id)
 
   const handleClick = (e: MouseEvent) => {
-    e.preventDefault() // Prevent navigation if inside a Link
+    e.preventDefault()
     e.stopPropagation()
     togglePal(props.pal)
   }

@@ -1,16 +1,12 @@
 import { ErrorBoundary as SolidErrorBoundary } from 'solid-js'
 import type { JSX } from 'solid-js'
-import { Link } from '@tanstack/solid-router'
+import { LinkButton } from './LinkButton'
 
 interface ErrorBoundaryProps {
   children: JSX.Element
   fallback?: JSX.Element
 }
 
-/**
- * Error boundary component to catch and display errors gracefully.
- * Uses Solid's built-in ErrorBoundary.
- */
 export function ErrorBoundary(props: ErrorBoundaryProps) {
   return (
     <SolidErrorBoundary
@@ -22,27 +18,10 @@ export function ErrorBoundary(props: ErrorBoundaryProps) {
         }
 
         return (
-          <div class="flex flex-col items-center justify-center py-16 text-gray-500">
-            <span class="text-6xl mb-4">💥</span>
-            <h3 class="text-xl font-semibold mb-2">Something went wrong</h3>
-            <p class="text-sm mb-4 text-center max-w-md">
-              {err?.message || 'An unexpected error occurred.'}
-            </p>
-            <div class="flex gap-4">
-              <button
-                onClick={reset}
-                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md text-sm hover:bg-gray-300 transition-colors"
-              >
-                Try again
-              </button>
-              <Link
-                to="/"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-              >
-                Go to Home
-              </Link>
-            </div>
-          </div>
+          <ErrorFallback
+            error={err instanceof Error ? err : new Error('An unexpected error occurred.')}
+            resetErrorBoundary={reset}
+          />
         )
       }}
     >
@@ -51,9 +30,6 @@ export function ErrorBoundary(props: ErrorBoundaryProps) {
   )
 }
 
-/**
- * Functional error fallback component
- */
 export function ErrorFallback(props: {
   error: Error
   resetErrorBoundary?: () => void
@@ -72,12 +48,7 @@ export function ErrorFallback(props: {
             Try again
           </button>
         )}
-        <Link
-          to="/"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-        >
-          Go to Home
-        </Link>
+        <LinkButton to="/">Go to Home</LinkButton>
       </div>
     </div>
   )

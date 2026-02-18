@@ -14,12 +14,10 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
-      <div class="min-h-screen pb-14">
+      <div class="h-screen overflow-hidden">
         <Outlet />
       </div>
-      {/* Team Bottom Bar - FR-408, FR-409 */}
       <TeamBottomBar />
-      {/* TanStack DevTools - Constitution Principle IV: Tutorial-Grade Quality */}
       <SolidQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
       <TanStackRouterDevtools position="bottom-right" />
     </>

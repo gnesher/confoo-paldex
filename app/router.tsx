@@ -6,7 +6,7 @@ export function createRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: Infinity,
       },
     },
   })
@@ -14,7 +14,7 @@ export function createRouter() {
   const router = createTanStackRouter({
     routeTree,
     defaultPreload: 'intent',
-    scrollRestoration: true, // Use router option instead of component
+    scrollRestoration: true,
     context: {
       queryClient,
     },

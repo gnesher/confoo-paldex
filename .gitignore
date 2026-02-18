@@ -36,5 +36,6 @@ yarn-error.log*
 # Vitest
 .vitest/
 
-# Generated TanStack config timestamps
+# Generated TanStack files
 app.config.timestamp_*.js
+app/routeTree.gen.ts

@@ -1,7 +1,6 @@
-import { createRoute, Link } from '@tanstack/solid-router'
+import { createFileRoute, Link } from '@tanstack/solid-router'
 import { createQuery } from '@tanstack/solid-query'
 import { Suspense, Show, For, createEffect, onCleanup } from 'solid-js'
-import { Route as rootRoute } from '../__root'
 import { palDetailQueryOptions } from '~/utils/queries'
 import { SuitabilityTable } from '~/components/SuitabilityTable'
 import { DropsTable } from '~/components/DropsTable'
@@ -10,9 +9,7 @@ import { PalNotFoundState } from '~/components/EmptyState'
 import { TypeBadge } from '~/components/TypeBadge'
 import { PalImage } from '~/components/PalImage'
 
-export const Route = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/pals/$palId',
+export const Route = createFileRoute('/pals/$palId')({
   component: PalDetailPage,
 })
 
@@ -21,7 +18,6 @@ function PalDetailPage() {
 
   return (
     <div class="min-h-screen bg-gray-50">
-      {/* Back navigation */}
       <div class="bg-white shadow">
         <div class="max-w-4xl mx-auto px-4 py-3">
           <Link
@@ -34,7 +30,6 @@ function PalDetailPage() {
         </div>
       </div>
 
-      {/* Main content with Suspense */}
       <Suspense fallback={<LoadingSkeleton />}>
         <PalDetailContent palId={params().palId} />
       </Suspense>
@@ -45,7 +40,6 @@ function PalDetailPage() {
 function PalDetailContent(props: { palId: string }) {
   const query = createQuery(() => palDetailQueryOptions(props.palId))
 
-  // Update document title
   createEffect(() => {
     const pal = query.data
     if (pal) {
@@ -67,10 +61,8 @@ function PalDetailContent(props: { palId: string }) {
     >
       {(pal) => (
         <div class="max-w-4xl mx-auto px-4 py-8">
-          {/* Hero Section */}
           <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
             <div class="md:flex">
-              {/* Image */}
               <div class="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8">
                 <PalImage
                   src={pal().imageUrl}
@@ -81,28 +73,24 @@ function PalDetailContent(props: { palId: string }) {
                 />
               </div>
 
-              {/* Info */}
               <div class="md:w-2/3 p-6">
                 <div class="flex items-baseline gap-3 mb-4">
                   <span class="text-gray-400 font-mono">#{pal().id}</span>
                   <h1 class="text-3xl font-bold text-gray-900">{pal().name}</h1>
                 </div>
 
-                {/* Types */}
                 <div class="flex gap-2 mb-6">
                   <For each={pal().types}>
                     {(type) => <TypeBadge type={type} size="md" />}
                   </For>
                 </div>
 
-                {/* Stats */}
                 <div class="grid grid-cols-3 gap-4 mb-6">
                   <StatCard label="HP" value={pal().stats.hp} icon="❤️" color="red" />
                   <StatCard label="Attack" value={pal().stats.attack} icon="⚔️" color="orange" />
                   <StatCard label="Defense" value={pal().stats.defense} icon="🛡️" color="blue" />
                 </div>
 
-                {/* Description */}
                 <Show when={pal().description}>
                   <p class="text-gray-600">{pal().description}</p>
                 </Show>
@@ -110,9 +98,7 @@ function PalDetailContent(props: { palId: string }) {
             </div>
           </div>
 
-          {/* Tables Section */}
           <div class="grid md:grid-cols-2 gap-8">
-            {/* Suitability Table */}
             <div class="bg-white rounded-lg shadow p-6">
               <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
                 <span>🔧</span>
@@ -121,7 +107,6 @@ function PalDetailContent(props: { palId: string }) {
               <SuitabilityTable data={pal().suitability} />
             </div>
 
-            {/* Drops Table */}
             <div class="bg-white rounded-lg shadow p-6">
               <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
                 <span>📦</span>
@@ -131,7 +116,6 @@ function PalDetailContent(props: { palId: string }) {
             </div>
           </div>
 
-          {/* Team Button */}
           <div class="mt-8 text-center pb-20">
             <TeamButton pal={pal()} size="lg" />
           </div>
@@ -141,9 +125,6 @@ function PalDetailContent(props: { palId: string }) {
   )
 }
 
-/**
- * Stat card component
- */
 function StatCard(props: {
   label: string
   value: number
@@ -167,9 +148,6 @@ function StatCard(props: {
   )
 }
 
-/**
- * Loading skeleton
- */
 function LoadingSkeleton() {
   return (
     <div class="max-w-4xl mx-auto px-4 py-8 animate-pulse">

@@ -1,7 +1,6 @@
-import { createRoute } from '@tanstack/solid-router'
+import { createFileRoute } from '@tanstack/solid-router'
 import { createQuery } from '@tanstack/solid-query'
 import { Suspense, Show, For } from 'solid-js'
-import { Route as rootRoute } from './__root'
 import { palListQueryOptions } from '~/utils/queries'
 import { searchParamsSchema, hasActiveFilters, type SearchParams } from '~/schemas/search'
 import { MAX_ATTACK_STAT } from '~/schemas/pal'
@@ -9,9 +8,7 @@ import { PalGrid } from '~/components/PalGrid'
 import { PalCardSkeleton } from '~/components/PalCard'
 import { FilterSidebar } from '~/components/FilterSidebar'
 
-export const Route = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
+export const Route = createFileRoute('/')({
   validateSearch: searchParamsSchema,
   component: HomePage,
 })
@@ -20,7 +17,7 @@ function HomePage() {
   const search = Route.useSearch()
 
   return (
-    <div class="flex min-h-screen">
+    <div class="flex h-full">
       <FilterSidebar
         initialValues={{
           q: search().q,
@@ -30,7 +27,7 @@ function HomePage() {
         }}
       />
 
-      <main class="flex-1 p-6 overflow-hidden">
+      <main class="flex-1 p-6 overflow-hidden flex flex-col">
         <header class="mb-6">
           <h1 class="text-3xl font-bold text-gray-900">Paldex</h1>
           <p class="text-gray-600 mt-1">
@@ -84,7 +81,7 @@ function PalGridWithData(props: { search: SearchParams }) {
   return (
     <Show when={query.data}>
       {(pals) => (
-        <div>
+        <div class="flex-1 min-h-0 flex flex-col">
           <div class="text-sm text-gray-500 mb-4">{pals().length} Pals found</div>
           <PalGrid pals={pals()} />
         </div>
