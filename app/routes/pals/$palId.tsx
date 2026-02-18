@@ -1,7 +1,6 @@
-import { createRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense, useEffect } from 'react'
-import { Route as rootRoute } from '../__root'
 import { palDetailQueryOptions } from '~/utils/queries'
 import { SuitabilityTable } from '~/components/SuitabilityTable'
 import { DropsTable } from '~/components/DropsTable'
@@ -10,9 +9,7 @@ import { PalNotFoundState } from '~/components/EmptyState'
 import { TypeBadge } from '~/components/TypeBadge'
 import { PalImage } from '~/components/PalImage'
 
-export const Route = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/pals/$palId',
+export const Route = createFileRoute('/pals/$palId')({
   component: PalDetailPage,
 })
 

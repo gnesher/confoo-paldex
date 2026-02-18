@@ -1,11 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { paldexApiPlugin } from './server/api-plugin'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    tanstackRouter({
+      routesDirectory: './app/routes',
+      generatedRouteTree: './app/routeTree.gen.ts',
+      autoCodeSplitting: true,
+    }),
     tsconfigPaths(),
     paldexApiPlugin(),
     react(),

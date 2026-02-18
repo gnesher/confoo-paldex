@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
+    "@tanstack/router-plugin": "^1.160.2",
     "@types/node": "^25.2.3",
     "@types/react": "^18.3.14",
     "@types/react-dom": "^18.3.3",

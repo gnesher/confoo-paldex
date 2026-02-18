@@ -14,7 +14,7 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
-      <div className="min-h-screen pb-14">
+      <div className="h-screen overflow-hidden">
         <Outlet />
       </div>
       <TeamBottomBar />

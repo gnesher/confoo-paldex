@@ -1,7 +1,6 @@
-import { createRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Suspense } from 'react'
-import { Route as rootRoute } from './__root'
 import { palListQueryOptions } from '~/utils/queries'
 import { searchParamsSchema, hasActiveFilters, type SearchParams } from '~/schemas/search'
 import { PalGrid } from '~/components/PalGrid'
@@ -9,9 +8,7 @@ import { PalCardSkeleton } from '~/components/PalCard'
 import { FilterSidebar } from '~/components/FilterSidebar'
 import { MAX_ATTACK_STAT } from '~/schemas/pal'
 
-export const Route = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
+export const Route = createFileRoute('/')({
   validateSearch: searchParamsSchema,
   component: HomePage,
 })
@@ -20,7 +17,7 @@ function HomePage() {
   const search = Route.useSearch()
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-full">
       <FilterSidebar
         initialValues={{
           q: search.q,
@@ -30,7 +27,7 @@ function HomePage() {
         }}
       />
 
-      <main className="flex-1 p-6 overflow-hidden">
+      <main className="flex-1 p-6 overflow-hidden flex flex-col">
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Paldex</h1>
           <p className="text-gray-600 mt-1">
@@ -79,7 +76,7 @@ function PalGridWithData({ search }: { search: SearchParams }) {
   const { data: pals } = useSuspenseQuery(palListQueryOptions(search))
 
   return (
-    <div>
+    <div className="flex-1 min-h-0 flex flex-col">
       <div className="text-sm text-gray-500 mb-4">{pals.length} Pals found</div>
       <PalGrid pals={pals} />
     </div>
