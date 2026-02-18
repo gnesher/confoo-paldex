@@ -33,10 +33,14 @@ describe('PalCard', () => {
   })
 
   it('should render HP, Attack, and Defense stat values', async () => {
-    const { screen } = await renderWithProviders(<PalCard pal={MOCK_FOXPARKS} />)
-    await expect.element(screen.getByText('65')).toBeInTheDocument()
-    const seventies = await screen.getByText('70').all()
-    expect(seventies.length).toBeGreaterThanOrEqual(2)
+    const pal = { ...MOCK_FOXPARKS, stats: { hp: 80, attack: 95, defense: 60 } }
+    const { screen } = await renderWithProviders(<PalCard pal={pal} />)
+    await expect.element(screen.getByText('❤️')).toBeInTheDocument()
+    await expect.element(screen.getByText('80')).toBeInTheDocument()
+    await expect.element(screen.getByText('⚔️')).toBeInTheDocument()
+    await expect.element(screen.getByText('95')).toBeInTheDocument()
+    await expect.element(screen.getByText('🛡️')).toBeInTheDocument()
+    await expect.element(screen.getByText('60')).toBeInTheDocument()
   })
 
   it('should link to the Pal detail page', async () => {

@@ -43,6 +43,16 @@ describe('Full Page – Home (/)', () => {
       await expect.element(screen.getByAltText('Foxparks')).toBeInTheDocument()
     })
 
+    it('should show empty state when no Pals match filters', async () => {
+      mockGetPals.mockResolvedValue([])
+      const { screen } = await renderApp('/')
+
+      await expect.element(
+        screen.getByText('No Pals found'),
+        DATA_TIMEOUT
+      ).toBeInTheDocument()
+    })
+
     it('should not show team bar when team is empty', async () => {
       const { screen } = await renderApp('/')
 
@@ -84,6 +94,23 @@ describe('Full Page – Home (/)', () => {
       await expect.element(screen.getByText('2 Pals found'), DATA_TIMEOUT).toBeInTheDocument()
       await expect.element(screen.getByText('Foxparks')).toBeInTheDocument()
       await expect.element(screen.getByText('Rooby')).toBeInTheDocument()
+    })
+
+    it('should display active filter badges', async () => {
+      const { screen } = await renderApp('/')
+
+      await expect.element(
+        screen.getByText(`${MOCK_PALS.length} Pals found`),
+        DATA_TIMEOUT
+      ).toBeInTheDocument()
+
+      const searchInput = screen.getByPlaceholder('Search Pals by name...')
+      await searchInput.fill('lam')
+
+      await expect.element(
+        screen.getByText(/Search:.*"lam"/),
+        DATA_TIMEOUT
+      ).toBeInTheDocument()
     })
 
     it('should clear all filters and restore full list', async () => {
