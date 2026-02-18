@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@tanstack/vue-router'
+import LinkButton from './LinkButton.vue'
 
 defineProps<{
   palId: string
@@ -13,11 +13,6 @@ defineProps<{
     <p class="text-sm mb-4">
       No Pal with ID "{{ palId }}" exists in the Paldex.
     </p>
-    <Link
-      to="/"
-      class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-    >
-      Browse All Pals
-    </Link>
+    <LinkButton to="/">Browse All Pals</LinkButton>
   </div>
 </template>

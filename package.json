@@ -18,6 +18,9 @@
     "@tanstack/pacer": "^0.1.0",
     "@tanstack/router-core": "link:../router/packages/router-core",
     "@tanstack/router-devtools-core": "link:../router/packages/router-devtools-core",
+    "@tanstack/router-generator": "link:../router/packages/router-generator",
+    "@tanstack/router-utils": "link:../router/packages/router-utils",
+    "@tanstack/virtual-file-routes": "link:../router/packages/virtual-file-routes",
     "@tanstack/store": "^0.7.0",
     "@tanstack/vue-query": "^5.62.7",
     "@tanstack/vue-query-devtools": "^5.62.7",
@@ -30,6 +33,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@tanstack/router-plugin": "link:../router/packages/router-plugin",
     "@playwright/test": "^1.57.0",
     "@types/node": "^25.2.3",
     "@testing-library/vue": "^8.1.0",

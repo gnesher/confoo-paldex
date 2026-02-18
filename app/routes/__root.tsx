@@ -14,12 +14,10 @@ export const Route = createRootRoute({
     setup() {
       return () =>
         h('div', {}, [
-          h('div', { class: 'min-h-screen pb-14' }, [
+          h('div', { class: 'h-screen overflow-hidden' }, [
             h(Outlet),
           ]),
-          // Team Bottom Bar - FR-408, FR-409
           h(TeamBottomBar),
-          // TanStack DevTools
           h(VueQueryDevtools, { initialIsOpen: false, buttonPosition: 'bottom-left' }),
           h(TanStackRouterDevtools, { position: 'bottom-right' }),
         ])

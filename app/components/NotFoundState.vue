@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@tanstack/vue-router'
+import LinkButton from './LinkButton.vue'
 
 withDefaults(defineProps<{
   message?: string
@@ -13,11 +13,6 @@ withDefaults(defineProps<{
     <span class="text-6xl mb-4">😕</span>
     <h3 class="text-xl font-semibold mb-2">Page Not Found</h3>
     <p class="text-sm mb-4">{{ message }}</p>
-    <Link
-      to="/"
-      class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-    >
-      Go to Home
-    </Link>
+    <LinkButton to="/">Go to Home</LinkButton>
   </div>
 </template>

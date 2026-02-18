@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@tanstack/vue-router'
+import LinkButton from './LinkButton.vue'
 
 withDefaults(defineProps<{
   title?: string
@@ -19,13 +19,8 @@ withDefaults(defineProps<{
     <span class="text-6xl mb-4">{{ icon }}</span>
     <h3 class="text-xl font-semibold mb-2">{{ title }}</h3>
     <p class="text-sm mb-4">{{ message }}</p>
-    <Link
-      v-if="showClearButton"
-      to="/"
-      :search="{}"
-      class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-    >
+    <LinkButton v-if="showClearButton" to="/" :search="{}">
       Clear all filters
-    </Link>
+    </LinkButton>
   </div>
 </template>

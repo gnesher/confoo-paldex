@@ -4,6 +4,7 @@ import { useVirtualizer } from '@tanstack/vue-virtual'
 import type { Pal } from '~/schemas/pal'
 import PalCard from './PalCard.vue'
 import { PalCardSkeleton } from './PalCard'
+import EmptyState from './EmptyState.vue'
 
 const props = withDefaults(defineProps<{
   pals: Pal[]
@@ -64,7 +65,6 @@ watch([columns, containerWidth], () => {
 </script>
 
 <template>
-  <!-- Loading state -->
   <div
     v-if="isLoading"
     class="grid gap-5"
@@ -73,18 +73,12 @@ watch([columns, containerWidth], () => {
     <PalCardSkeleton v-for="i in 12" :key="i" />
   </div>
 
-  <!-- Empty state -->
-  <div v-else-if="pals.length === 0" class="flex flex-col items-center justify-center py-16 text-gray-500">
-    <span class="text-6xl mb-4">🔍</span>
-    <h3 class="text-xl font-semibold mb-2">No Pals found</h3>
-    <p class="text-sm">Try adjusting your search filters</p>
-  </div>
+  <EmptyState v-else-if="pals.length === 0" :show-clear-button="false" />
 
-  <!-- Virtualized grid -->
   <div
     v-else
     ref="parentRef"
-    class="h-[calc(100vh-220px)] overflow-auto"
+    class="flex-1 min-h-0 overflow-auto"
   >
     <div
       :style="{

@@ -24,7 +24,6 @@ onMounted(() => {
 
 <template>
   <div v-if="team.length > 0 || isExpanded" class="fixed bottom-0 left-0 right-0 z-50">
-    <!-- Storage warning banner -->
     <div
       v-if="storageWarning"
       class="bg-yellow-100 border-t border-yellow-300 px-4 py-2 text-sm text-yellow-800 text-center"
@@ -38,7 +37,6 @@ onMounted(() => {
         isExpanded ? 'h-48' : 'h-14',
       ]"
     >
-      <!-- Toggle button -->
       <button
         type="button"
         @click="isExpanded = !isExpanded"
@@ -59,7 +57,6 @@ onMounted(() => {
         </span>
       </button>
 
-      <!-- Expanded content -->
       <div v-if="isExpanded" class="h-[calc(100%-3.5rem)] overflow-hidden">
         <div v-if="team.length === 0" class="h-full flex items-center justify-center text-gray-500">
           <div class="text-center">

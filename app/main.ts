@@ -5,7 +5,6 @@ import { createRouter } from './router'
 
 import './styles/globals.css'
 
-// Create router and query client
 const { router, queryClient } = createRouter()
 
 const app = createApp({

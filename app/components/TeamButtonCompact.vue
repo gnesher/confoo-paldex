@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { useStore } from '@tanstack/vue-store'
-import { teamStore, togglePal } from '~/stores/team'
+import { computed } from 'vue'
+import { togglePal, useIsInTeam } from '~/stores/team'
 import type { Pal } from '~/schemas/pal'
 
 const props = defineProps<{
   pal: Pal
 }>()
 
-const isInTeam = useStore(teamStore, (state) =>
-  state.pals.some((p) => p.id === props.pal.id)
-)
+const isInTeam = useIsInTeam(computed(() => props.pal.id))
 
 function handleClick(e: MouseEvent) {
   e.preventDefault()

@@ -1,7 +1,6 @@
+import { createFileRoute, useSearch } from '@tanstack/vue-router'
 import { computed, defineComponent, h } from 'vue'
-import { createRoute, useSearch } from '@tanstack/vue-router'
 import { useQuery } from '@tanstack/vue-query'
-import { Route as rootRoute } from './__root'
 import { palListQueryOptions } from '~/utils/queries'
 import { searchParamsSchema, hasActiveFilters, type SearchParams } from '~/schemas/search'
 import { MAX_ATTACK_STAT } from '~/schemas/pal'
@@ -9,9 +8,7 @@ import PalGrid from '~/components/PalGrid.vue'
 import { PalCardSkeleton } from '~/components/PalCard'
 import FilterSidebar from '~/components/FilterSidebar.vue'
 
-export const Route = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/',
+export const Route = createFileRoute('/')({
   validateSearch: searchParamsSchema,
   component: defineComponent({
     name: 'HomePage',
@@ -20,7 +17,7 @@ export const Route = createRoute({
 
       return () => {
         const s = search.value
-        return h('div', { class: 'flex min-h-screen' }, [
+        return h('div', { class: 'flex h-full' }, [
           h(FilterSidebar, {
             initialValues: {
               q: s.q,
@@ -29,7 +26,7 @@ export const Route = createRoute({
               atkMax: s.atkMax,
             },
           }),
-          h('main', { class: 'flex-1 p-6 overflow-hidden' }, [
+          h('main', { class: 'flex-1 p-6 overflow-hidden flex flex-col' }, [
             h('header', { class: 'mb-6' }, [
               h('h1', { class: 'text-3xl font-bold text-gray-900' }, 'Paldex'),
               h('p', { class: 'text-gray-600 mt-1' }, 'A Pokedex for Palworld - Built with the TanStack Ecosystem'),
@@ -99,7 +96,7 @@ const PalGridWithData = defineComponent({
       }
 
       const palsList = pals.value ?? []
-      return h('div', {}, [
+      return h('div', { class: 'flex-1 min-h-0 flex flex-col' }, [
         h('div', { class: 'text-sm text-gray-500 mb-4' }, `${palsList.length} Pals found`),
         h(PalGrid, { pals: palsList }),
       ])

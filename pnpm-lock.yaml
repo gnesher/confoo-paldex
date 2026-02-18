@@ -5,9 +5,13 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@tanstack/router-devtools-core': link:../router/packages/router-devtools-core
   '@tanstack/history': link:../router/packages/history
   '@tanstack/router-core': link:../router/packages/router-core
+  '@tanstack/router-devtools-core': link:../router/packages/router-devtools-core
+  '@tanstack/router-generator': link:../router/packages/router-generator
+  '@tanstack/router-plugin': link:../router/packages/router-plugin
+  '@tanstack/router-utils': link:../router/packages/router-utils
+  '@tanstack/virtual-file-routes': link:../router/packages/virtual-file-routes
   '@tanstack/vue-router': link:../router/packages/vue-router
   '@tanstack/vue-router-devtools': link:../router/packages/vue-router-devtools
 
@@ -27,9 +31,18 @@ importers:
       '@tanstack/router-devtools-core':
         specifier: link:../router/packages/router-devtools-core
         version: link:../router/packages/router-devtools-core
+      '@tanstack/router-generator':
+        specifier: link:../router/packages/router-generator
+        version: link:../router/packages/router-generator
+      '@tanstack/router-utils':
+        specifier: link:../router/packages/router-utils
+        version: link:../router/packages/router-utils
       '@tanstack/store':
         specifier: ^0.7.0
         version: 0.7.7
+      '@tanstack/virtual-file-routes':
+        specifier: link:../router/packages/virtual-file-routes
+        version: link:../router/packages/virtual-file-routes
       '@tanstack/vue-query':
         specifier: ^5.62.7
         version: 5.92.9(vue@3.5.28(typescript@5.9.3))
@@ -61,6 +74,9 @@ importers:
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.58.2
+      '@tanstack/router-plugin':
+        specifier: link:../router/packages/router-plugin
+        version: link:../router/packages/router-plugin
       '@testing-library/vue':
         specifier: ^8.1.0
         version: 8.1.0(@vue/compiler-sfc@3.5.28)(vue@3.5.28(typescript@5.9.3))

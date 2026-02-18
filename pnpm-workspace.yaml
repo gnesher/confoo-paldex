@@ -2,5 +2,9 @@ overrides:
   '@tanstack/history': link:../router/packages/history
   '@tanstack/router-core': link:../router/packages/router-core
   '@tanstack/router-devtools-core': link:../router/packages/router-devtools-core
+  '@tanstack/router-generator': link:../router/packages/router-generator
+  '@tanstack/router-plugin': link:../router/packages/router-plugin
+  '@tanstack/router-utils': link:../router/packages/router-utils
+  '@tanstack/virtual-file-routes': link:../router/packages/virtual-file-routes
   '@tanstack/vue-router': link:../router/packages/vue-router
   '@tanstack/vue-router-devtools': link:../router/packages/vue-router-devtools

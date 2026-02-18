@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useStore } from '@tanstack/vue-store'
-import { teamStore, togglePal } from '~/stores/team'
+import { computed } from 'vue'
+import { togglePal, useIsInTeam } from '~/stores/team'
 import type { Pal } from '~/schemas/pal'
 
 const props = withDefaults(defineProps<{
@@ -12,27 +12,21 @@ const props = withDefaults(defineProps<{
   class: '',
 })
 
-const isInTeam = useStore(teamStore, (state) =>
-  state.pals.some((p) => p.id === props.pal.id)
-)
-
-const sizeClasses: Record<string, string> = {
+const SIZE_CLASSES = {
   sm: 'px-3 py-1.5 text-sm',
   md: 'px-4 py-2 text-base',
   lg: 'px-6 py-3 text-lg',
-}
+} as const
 
-function handleClick() {
-  togglePal(props.pal)
-}
+const isInTeam = useIsInTeam(computed(() => props.pal.id))
 </script>
 
 <template>
   <button
     type="button"
-    @click="handleClick"
+    @click="togglePal(pal)"
     :class="[
-      sizeClasses[size],
+      SIZE_CLASSES[size],
       'font-semibold rounded-lg transition-all duration-200',
       isInTeam
         ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'

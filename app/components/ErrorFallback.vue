@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@tanstack/vue-router'
+import LinkButton from './LinkButton.vue'
 
 defineProps<{
   error: Error
@@ -20,12 +20,7 @@ defineProps<{
       >
         Try again
       </button>
-      <Link
-        to="/"
-        class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-      >
-        Go to Home
-      </Link>
+      <LinkButton to="/">Go to Home</LinkButton>
     </div>
   </div>
 </template>
