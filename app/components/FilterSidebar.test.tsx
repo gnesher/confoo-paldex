@@ -99,6 +99,19 @@ describe('FilterSidebar', () => {
     await expect.element(screen.getByText('2 type(s) selected')).toBeInTheDocument()
   })
 
+  it('should display selected types as removable badges', async () => {
+    const { screen } = await renderWithProviders(FilterSidebar, {
+      props: { initialValues: { types: ['Fire', 'Water'] } },
+    })
+    await expect.element(screen.getByText('2 type(s) selected')).toBeInTheDocument()
+    await vi.waitFor(async () => {
+      const fireBadges = await screen.getByText('Fire').all()
+      expect(fireBadges.length).toBeGreaterThanOrEqual(1)
+      const waterBadges = await screen.getByText('Water').all()
+      expect(waterBadges.length).toBeGreaterThanOrEqual(1)
+    }, { timeout: 2000 })
+  })
+
   it('should render attack range slider', async () => {
     const { screen } = await renderWithProviders(FilterSidebar, {
       props: { initialValues: {} },

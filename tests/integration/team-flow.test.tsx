@@ -37,4 +37,25 @@ describe('Team Flow Integration', () => {
     const { screen } = await renderWithProviders(TeamBottomBar)
     await expect.element(screen.getByText('2 Pals')).toBeInTheDocument()
   })
+
+  it('should expand the bar and show team members', async () => {
+    addPal(MOCK_LAMBALL)
+
+    const { screen } = await renderWithProviders(TeamBottomBar)
+    await screen.getByRole('button', { name: /my team/i }).click()
+
+    await expect.element(screen.getByText('Lamball')).toBeInTheDocument()
+  })
+
+  it('should toggle button text between Add and Remove', async () => {
+    const screen = render(TeamButton, { props: { pal: MOCK_LAMBALL } })
+
+    await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
+
+    await screen.getByText('Add to Team').click()
+    await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
+
+    await screen.getByText('Remove from Team').click()
+    await expect.element(screen.getByText('Add to Team')).toBeInTheDocument()
+  })
 })

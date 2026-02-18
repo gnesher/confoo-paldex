@@ -91,4 +91,25 @@ describe('ErrorBoundary', () => {
     await expect.element(screen.getByText('Something went wrong')).toBeInTheDocument()
     await expect.element(screen.getByText('Test error message')).toBeInTheDocument()
   })
+
+  it('should show "Try again" and "Go to Home" buttons on error', async () => {
+    const { screen } = await renderWithProviders(ErrorBoundaryWithThrowingChild)
+    await expect.element(
+      screen.getByRole('button', { name: /try again/i })
+    ).toBeInTheDocument()
+    await expect.element(
+      screen.getByRole('link', { name: /go to home/i })
+    ).toBeInTheDocument()
+  })
+})
+
+describe('ErrorFallback (Go to Home)', () => {
+  it('should render Go to Home link', async () => {
+    const { screen } = await renderWithProviders(ErrorFallback, {
+      props: { error: new Error('Fail') },
+    })
+    await expect.element(
+      screen.getByRole('link', { name: /go to home/i })
+    ).toBeInTheDocument()
+  })
 })

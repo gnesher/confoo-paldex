@@ -24,6 +24,22 @@ describe('PalCard', () => {
     expect((await statElements).length).toBeGreaterThanOrEqual(1)
   }, 10000)
 
+  it('should render the Pal image', async () => {
+    const { screen } = await renderWithProviders(PalCard, {
+      props: { pal: MOCK_LAMBALL },
+    })
+    await expect.element(screen.getByText('Lamball')).toBeInTheDocument()
+  })
+
+  it('should render HP, Attack, and Defense stat values', async () => {
+    const { screen } = await renderWithProviders(PalCard, {
+      props: { pal: MOCK_FOXPARKS },
+    })
+    await expect.element(screen.getByText('65')).toBeInTheDocument()
+    const seventies = await screen.getByText('70').all()
+    expect(seventies.length).toBeGreaterThanOrEqual(2)
+  })
+
   it('should have a link to /pals/$palId', async () => {
     const { screen } = await renderWithProviders(PalCard, {
       props: { pal: MOCK_LAMBALL },
@@ -53,5 +69,11 @@ describe('PalCardSkeleton', () => {
     const { screen } = await renderSimple(PalCardSkeleton)
     const skeleton = screen.container.querySelector('.animate-pulse')
     expect(skeleton).not.toBeNull()
+  })
+
+  it('should not render any Pal data', async () => {
+    const { screen } = await renderSimple(PalCardSkeleton)
+    await expect.element(screen.getByRole('link')).not.toBeInTheDocument()
+    await expect.element(screen.getByRole('img')).not.toBeInTheDocument()
   })
 })

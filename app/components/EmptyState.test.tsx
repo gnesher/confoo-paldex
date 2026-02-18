@@ -14,6 +14,13 @@ describe('EmptyState', () => {
     await expect.element(screen.getByText('🔍')).toBeInTheDocument()
   })
 
+  it('should render the "Clear all filters" link by default', async () => {
+    const { screen } = await renderWithProviders(EmptyState)
+    await expect.element(
+      screen.getByRole('link', { name: /clear all filters/i })
+    ).toBeInTheDocument()
+  })
+
   it('should render custom props', async () => {
     const { screen } = await renderWithProviders(EmptyState, {
       props: {
@@ -65,6 +72,12 @@ describe('PalNotFoundState', () => {
     await expect.element(
       screen.getByText(/No Pal with ID "999" exists in the Paldex/)
     ).toBeInTheDocument()
+  })
+
+  it('should have a link to browse all Pals', async () => {
+    const { screen } = await renderWithProviders(PalNotFoundState, {
+      props: { palId: '999' },
+    })
     await expect.element(
       screen.getByRole('link', { name: /browse all pals/i })
     ).toBeInTheDocument()

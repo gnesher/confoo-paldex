@@ -24,6 +24,30 @@ describe('DropsTable', () => {
     await expect.element(screen.getByText('50%')).toBeInTheDocument()
   })
 
+  it('should render quantities with multiplication prefix', async () => {
+    const screen = render(DropsTable, {
+      props: { data: MOCK_DROPS },
+    })
+    await expect.element(screen.getByText('×2')).toBeInTheDocument()
+    const ones = await screen.getByText('×1').all()
+    expect(ones).toHaveLength(2)
+  })
+
+  it('should render drop rates as percentages', async () => {
+    const screen = render(DropsTable, {
+      props: { data: MOCK_DROPS },
+    })
+    await expect.element(screen.getByText('75%')).toBeInTheDocument()
+    await expect.element(screen.getByText('50%')).toBeInTheDocument()
+  })
+
+  it('should render a dash for undefined drop rate', async () => {
+    const screen = render(DropsTable, {
+      props: { data: MOCK_DROPS },
+    })
+    await expect.element(screen.getByText('—')).toBeInTheDocument()
+  })
+
   it('should show empty message when no data', async () => {
     const screen = render(DropsTable, {
       props: { data: [] },

@@ -25,6 +25,24 @@ describe('TeamButton', () => {
     await expect.element(screen.getByText('Remove from Team')).toBeInTheDocument()
   })
 
+  it('should apply size classes for sm size', async () => {
+    const screen = render(TeamButton, {
+      props: { pal: MOCK_LAMBALL, size: 'sm' },
+    })
+    const button = screen.getByRole('button')
+    await expect.element(button).toHaveClass('px-3')
+    await expect.element(button).toHaveClass('py-1.5')
+  })
+
+  it('should apply size classes for lg size', async () => {
+    const screen = render(TeamButton, {
+      props: { pal: MOCK_LAMBALL, size: 'lg' },
+    })
+    const button = screen.getByRole('button')
+    await expect.element(button).toHaveClass('px-6')
+    await expect.element(button).toHaveClass('py-3')
+  })
+
   it('should toggle team state on click', async () => {
     const screen = render(TeamButton, {
       props: { pal: MOCK_LAMBALL },
