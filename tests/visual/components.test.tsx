@@ -1,177 +1,119 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render } from 'vitest-browser-solid'
-import { Suspense } from 'solid-js'
-import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
-import {
-  createMemoryHistory,
-  createRootRoute,
-  createRoute,
-  createRouter,
-  RouterProvider,
-  Outlet,
-} from '@tanstack/solid-router'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { page } from 'vitest/browser'
+import { renderApp, MOCK_PALS, filterPals, DATA_TIMEOUT } from '../browser/helpers'
 
-import { PalCard, PalCardSkeleton } from '~/components/PalCard'
-import { SuitabilityTable } from '~/components/SuitabilityTable'
-import { DropsTable } from '~/components/DropsTable'
-import { EmptyState, PalNotFoundState } from '~/components/EmptyState'
-import { ErrorFallback } from '~/components/ErrorBoundary'
-import { TeamButton } from '~/components/TeamButton'
-import { PalGridStats } from '~/components/PalGrid'
-import { clearTeam, addPal } from '~/stores/team'
-import {
-  MOCK_LAMBALL,
-  MOCK_PENGULLET,
-  MOCK_SUITABILITY,
-  MOCK_DROPS,
-} from '../helpers/fixtures'
-import type { JSX } from 'solid-js'
+vi.mock('~/utils/pals', () => ({
+  getPals: vi.fn(),
+  getPalById: vi.fn(),
+}))
 
-/**
- * Helper to wrap components that need Router context in a minimal provider.
- */
-async function renderWithRouter(ui: () => JSX.Element) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+import { getPals, getPalById } from '~/utils/pals'
 
-  const rootRoute = createRootRoute({
-    component: () => (
-      <Suspense fallback={<div>Loading...</div>}>
-        <Outlet />
-      </Suspense>
-    ),
-  })
+const mockGetPals = vi.mocked(getPals)
+const mockGetPalById = vi.mocked(getPalById)
 
-  const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/',
-    component: ui,
-  })
-
-  const catchAll = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '$',
-    component: () => <div />,
-  })
-
-  const routeTree = rootRoute.addChildren([indexRoute, catchAll])
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: ['/'] }),
-  })
-
-  const screen = render(() => (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  ))
-
-  return screen
+const SCREENSHOT_OPTIONS = {
+  comparatorOptions: {
+    threshold: 0.1,
+    allowedMismatchedPixelRatio: 0.02,
+  },
 }
 
+beforeEach(() => {
+  mockGetPals.mockImplementation(async (params) => filterPals(MOCK_PALS, params))
+  mockGetPalById.mockImplementation(async (id) => MOCK_PALS.find((p) => p.id === id) ?? null)
+})
+
 describe('Visual Snapshots', () => {
-  beforeEach(() => {
-    clearTeam()
-  })
+  describe('Home Page', () => {
+    it('should match screenshot with Pals loaded', async () => {
+      const { screen } = await renderApp('/')
 
-  describe('PalCard', () => {
-    it('should match snapshot for single-type Pal', async () => {
-      const screen = await renderWithRouter(() => <PalCard pal={MOCK_LAMBALL} />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
+      await expect.element(
+        screen.getByText(`${MOCK_PALS.length} Pals found`),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
 
-    it('should match snapshot for dual-type Pal', async () => {
-      const screen = await renderWithRouter(() => <PalCard pal={MOCK_PENGULLET} />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('PalCardSkeleton', () => {
-    it('should match snapshot', async () => {
-      const screen = render(() => <PalCardSkeleton />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('SuitabilityTable', () => {
-    it('should match snapshot with sample data', async () => {
-      const screen = render(() => <SuitabilityTable data={MOCK_SUITABILITY} />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-
-    it('should match snapshot for empty state', async () => {
-      const screen = render(() => <SuitabilityTable data={[]} />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('DropsTable', () => {
-    it('should match snapshot with sample data', async () => {
-      const screen = render(() => <DropsTable data={MOCK_DROPS} />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-
-    it('should match snapshot for empty state', async () => {
-      const screen = render(() => <DropsTable data={[]} />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('EmptyState', () => {
-    it('should match snapshot with defaults', async () => {
-      const screen = await renderWithRouter(() => <EmptyState />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('PalNotFoundState', () => {
-    it('should match snapshot', async () => {
-      const screen = await renderWithRouter(() => <PalNotFoundState palId="999" />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('ErrorFallback', () => {
-    it('should match snapshot with error', async () => {
-      const screen = await renderWithRouter(
-        () => <ErrorFallback error={new Error('Something broke')} />
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'home-loaded',
+        SCREENSHOT_OPTIONS,
       )
-      expect(screen.container.innerHTML).toMatchSnapshot()
     })
 
-    it('should match snapshot with reset callback', async () => {
-      const screen = await renderWithRouter(
-        () => <ErrorFallback
-          error={new Error('Something broke')}
-          resetErrorBoundary={() => {}}
-        />
+    it('should match screenshot with empty results', async () => {
+      mockGetPals.mockResolvedValue([])
+      const { screen } = await renderApp('/')
+
+      await expect.element(
+        screen.getByText('No Pals found'),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'home-empty',
+        SCREENSHOT_OPTIONS,
       )
-      expect(screen.container.innerHTML).toMatchSnapshot()
     })
   })
 
-  describe('TeamButton', () => {
-    it('should match snapshot in "add" state', async () => {
-      const screen = await renderWithRouter(
-        () => <TeamButton pal={MOCK_LAMBALL} />
+  describe('Detail Page', () => {
+    it('should match screenshot for single-type Pal', async () => {
+      const { screen } = await renderApp('/pals/001')
+
+      await expect.element(
+        screen.getByRole('heading', { level: 1 }),
+        DATA_TIMEOUT,
+      ).toHaveTextContent('Lamball')
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-single-type',
+        SCREENSHOT_OPTIONS,
       )
-      expect(screen.container.innerHTML).toMatchSnapshot()
     })
 
-    it('should match snapshot in "remove" state', async () => {
-      addPal(MOCK_LAMBALL)
-      const screen = await renderWithRouter(
-        () => <TeamButton pal={MOCK_LAMBALL} />
-      )
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
+    it('should match screenshot for dual-type Pal', async () => {
+      const { screen } = await renderApp('/pals/010')
 
-  describe('PalGridStats', () => {
-    it('should match snapshot', async () => {
-      const screen = render(() => <PalGridStats total={111} visible={20} />)
-      expect(screen.container.innerHTML).toMatchSnapshot()
+      await expect.element(
+        screen.getByRole('heading', { level: 1 }),
+        DATA_TIMEOUT,
+      ).toHaveTextContent('Pengullet')
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-dual-type',
+        SCREENSHOT_OPTIONS,
+      )
+    })
+
+    it('should match screenshot for Pal not found', async () => {
+      const { screen } = await renderApp('/pals/999')
+
+      await expect.element(
+        screen.getByText('Pal Not Found'),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-not-found',
+        SCREENSHOT_OPTIONS,
+      )
+    })
+
+    it('should match screenshot with team bar visible', async () => {
+      const { screen } = await renderApp('/pals/001')
+
+      await expect.element(
+        screen.getByText('Add to Team'),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
+
+      await screen.getByText('Add to Team').click()
+      await expect.element(screen.getByText('My Team')).toBeInTheDocument()
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-with-team-bar',
+        SCREENSHOT_OPTIONS,
+      )
     })
   })
 })
