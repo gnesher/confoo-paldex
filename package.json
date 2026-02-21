@@ -7,9 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:components": "vitest --exclude '**/tests/browser/**'",
-    "test:pages": "vitest tests/browser",
+    "test": "vitest --exclude '**/tests/visual/**'",
+    "test:visual": "vitest tests/visual/",
+    "test:components": "vitest --exclude '**/tests/browser/**' --exclude '**/tests/visual/**'",
+    "test:pages": "vitest tests/browser/full-page.test.tsx",
     "test:ui": "vitest --ui",
     "typecheck": "vue-tsc --noEmit"
   },

@@ -1,134 +1,119 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render } from 'vitest-browser-vue'
-import { renderWithProviders } from '../helpers/render'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { page } from 'vitest/browser'
+import { renderApp, MOCK_PALS, filterPals, DATA_TIMEOUT } from '../browser/helpers'
 
-import PalCard from '~/components/PalCard.vue'
-import { PalCardSkeleton } from '~/components/PalCard'
-import TypeBadge from '~/components/TypeBadge.vue'
-import { PalGridStats } from '~/components/PalGridStats'
-import SuitabilityTable from '~/components/SuitabilityTable.vue'
-import DropsTable from '~/components/DropsTable.vue'
-import EmptyState from '~/components/EmptyState.vue'
-import PalNotFoundState from '~/components/PalNotFoundState.vue'
-import ErrorFallback from '~/components/ErrorFallback.vue'
-import TeamButton from '~/components/TeamButton.vue'
+vi.mock('~/utils/pals', () => ({
+  getPals: vi.fn(),
+  getPalById: vi.fn(),
+}))
 
-import {
-  MOCK_LAMBALL,
-  MOCK_SUITABILITY,
-  MOCK_DROPS,
-} from '../helpers/fixtures'
-import { addPal, clearTeam } from '~/stores/team'
+import { getPals, getPalById } from '~/utils/pals'
 
-describe('Visual Snapshot Tests', () => {
-  beforeEach(() => {
-    clearTeam()
-  })
+const mockGetPals = vi.mocked(getPals)
+const mockGetPalById = vi.mocked(getPalById)
 
-  describe('TypeBadge', () => {
-    it('should match snapshot for Fire type', async () => {
-      const screen = render(TypeBadge, { props: { type: 'Fire', size: 'sm' } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
+const SCREENSHOT_OPTIONS = {
+  comparatorOptions: {
+    threshold: 0.1,
+    allowedMismatchedPixelRatio: 0.02,
+  },
+}
+
+beforeEach(() => {
+  mockGetPals.mockImplementation(async (params) => filterPals(MOCK_PALS, params))
+  mockGetPalById.mockImplementation(async (id) => MOCK_PALS.find((p) => p.id === id) ?? null)
+})
+
+describe('Visual Snapshots', () => {
+  describe('Home Page', () => {
+    it('should match screenshot with Pals loaded', async () => {
+      const { screen } = await renderApp('/')
+
+      await expect.element(
+        screen.getByText(`${MOCK_PALS.length} Pals found`),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'home-loaded',
+        SCREENSHOT_OPTIONS,
+      )
     })
 
-    it('should match snapshot for Water type (md)', async () => {
-      const screen = render(TypeBadge, { props: { type: 'Water', size: 'md' } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
+    it('should match screenshot with empty results', async () => {
+      mockGetPals.mockResolvedValue([])
+      const { screen } = await renderApp('/')
 
-  describe('PalCardSkeleton', () => {
-    it('should match snapshot', async () => {
-      const screen = render(PalCardSkeleton)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
+      await expect.element(
+        screen.getByText('No Pals found'),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
 
-  describe('PalCard', () => {
-    it('should match snapshot', async () => {
-      const { screen } = await renderWithProviders(PalCard, {
-        props: { pal: MOCK_LAMBALL },
-      })
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('SuitabilityTable', () => {
-    it('should match snapshot with data', async () => {
-      const screen = render(SuitabilityTable, { props: { data: MOCK_SUITABILITY } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-
-    it('should match snapshot when empty', async () => {
-      const screen = render(SuitabilityTable, { props: { data: [] } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'home-empty',
+        SCREENSHOT_OPTIONS,
+      )
     })
   })
 
-  describe('DropsTable', () => {
-    it('should match snapshot with data', async () => {
-      const screen = render(DropsTable, { props: { data: MOCK_DROPS } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
+  describe('Detail Page', () => {
+    it('should match screenshot for single-type Pal', async () => {
+      const { screen } = await renderApp('/pals/001')
+
+      await expect.element(
+        screen.getByRole('heading', { level: 1 }),
+        DATA_TIMEOUT,
+      ).toHaveTextContent('Lamball')
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-single-type',
+        SCREENSHOT_OPTIONS,
+      )
     })
 
-    it('should match snapshot when empty', async () => {
-      const screen = render(DropsTable, { props: { data: [] } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
+    it('should match screenshot for dual-type Pal', async () => {
+      const { screen } = await renderApp('/pals/010')
 
-  describe('EmptyState', () => {
-    it('should match snapshot with defaults', async () => {
-      const { screen } = await renderWithProviders(EmptyState)
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
+      await expect.element(
+        screen.getByRole('heading', { level: 1 }),
+        DATA_TIMEOUT,
+      ).toHaveTextContent('Pengullet')
 
-  describe('PalNotFoundState', () => {
-    it('should match snapshot', async () => {
-      const { screen } = await renderWithProviders(PalNotFoundState, {
-        props: { palId: '999' },
-      })
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
-
-  describe('ErrorFallback', () => {
-    it('should match snapshot with error', async () => {
-      const { screen } = await renderWithProviders(ErrorFallback, {
-        props: { error: new Error('Something broke') },
-      })
-      expect(screen.container.innerHTML).toMatchSnapshot()
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-dual-type',
+        SCREENSHOT_OPTIONS,
+      )
     })
 
-    it('should match snapshot with reset callback', async () => {
-      const { screen } = await renderWithProviders(ErrorFallback, {
-        props: {
-          error: new Error('Something broke'),
-          resetErrorBoundary: () => {},
-        },
-      })
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
+    it('should match screenshot for Pal not found', async () => {
+      const { screen } = await renderApp('/pals/999')
 
-  describe('TeamButton', () => {
-    it('should match snapshot in "add" state', async () => {
-      const screen = render(TeamButton, { props: { pal: MOCK_LAMBALL } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
+      await expect.element(
+        screen.getByText('Pal Not Found'),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-not-found',
+        SCREENSHOT_OPTIONS,
+      )
     })
 
-    it('should match snapshot in "remove" state', async () => {
-      addPal(MOCK_LAMBALL)
-      const screen = render(TeamButton, { props: { pal: MOCK_LAMBALL } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
-    })
-  })
+    it('should match screenshot with team bar visible', async () => {
+      const { screen } = await renderApp('/pals/001')
 
-  describe('PalGridStats', () => {
-    it('should match snapshot', async () => {
-      const screen = render(PalGridStats, { props: { total: 111, visible: 20 } })
-      expect(screen.container.innerHTML).toMatchSnapshot()
+      await expect.element(
+        screen.getByText('Add to Team'),
+        DATA_TIMEOUT,
+      ).toBeInTheDocument()
+
+      await screen.getByText('Add to Team').click()
+      await expect.element(screen.getByText('My Team')).toBeInTheDocument()
+
+      await expect(page.elementLocator(screen.container)).toMatchScreenshot(
+        'detail-with-team-bar',
+        SCREENSHOT_OPTIONS,
+      )
     })
   })
 })
